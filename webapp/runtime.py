@@ -9,6 +9,8 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from collections.abc import Callable
+from typing import TypeVar
 
 from icloud_engine import Engine, make_engine, session_files_present
 from state import State
@@ -17,6 +19,7 @@ from webapp.pipeline import Pipeline
 from webapp.processing import Jobs
 
 log = logging.getLogger("webui")
+T = TypeVar("T")
 
 _engine: Engine | None = None
 _state: State | None = None
@@ -81,9 +84,25 @@ def get_state() -> State:
 
 
 def close_state() -> None:
-    global _state, _state_path
     with _state_lock:
-        if _state is not None:
-            _state.close()
-        _state = None
-        _state_path = None
+        _close_state_locked()
+
+
+def drop_state(remove: Callable[[], T]) -> T:
+    """Закрывает базу и, не отпуская замок, выполняет remove() — удаление её файлов.
+
+    Интерфейс опрашивает /api/status каждые 1,5 с и через get_state() открыл бы базу заново
+    прямо во время удаления (на Windows открытый файл удалить нельзя). Под замком опрос ждёт,
+    а после удаления создаёт базу с чистого листа.
+    """
+    with _state_lock:
+        _close_state_locked()
+        return remove()
+
+
+def _close_state_locked() -> None:
+    global _state, _state_path
+    if _state is not None:
+        _state.close()
+    _state = None
+    _state_path = None

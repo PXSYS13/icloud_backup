@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import threading
+import time
+
 from fastapi.testclient import TestClient
 
 import webapp.runtime
@@ -84,3 +87,40 @@ def test_forget_list_removes_db(client, tmp_path):
     r = client.post("/api/forget_list").json()
     assert r["ok"], r
     assert client.get("/api/status").json()["library"]["total"] == 0
+
+
+def test_forget_list_while_status_is_polled(client, monkeypatch):
+    """Опрос состояния во время «Забыть список» ждёт, а не открывает базу заново.
+
+    Раньше get_state() из опроса успевал открыть базу между её закрытием и удалением файлов,
+    и на Windows удаление три секунды упиралось в занятый файл. Пауза перед удалением делает
+    это окно широким, чтобы опрос в него точно попал.
+    """
+    import webapp.control
+
+    webapp.runtime.get_state().upsert_batch([{"id": "x", "filename": "a.jpg", "kind": "photo", "size": 1}])
+    remove = webapp.control.safe_remove_db_files
+
+    def slow_remove(base_file):
+        time.sleep(0.3)
+        return remove(base_file)
+
+    monkeypatch.setattr(webapp.control, "safe_remove_db_files", slow_remove)
+    stop = threading.Event()
+    polled = []
+
+    def poll():
+        while not stop.is_set():
+            polled.append(webapp.runtime.get_state())
+            time.sleep(0.005)
+
+    thread = threading.Thread(target=poll, daemon=True)
+    thread.start()
+    try:
+        r = client.post("/api/forget_list").json()
+    finally:
+        stop.set()
+        thread.join(5)
+    assert r["ok"], r
+    assert polled and not thread.is_alive()
+    assert webapp.runtime.get_state().get_stats()["total"] == 0

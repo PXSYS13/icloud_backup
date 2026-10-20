@@ -297,6 +297,6 @@ def api_forget_list():
         runtime.pipeline.wait_finished(15)
     if runtime.jobs.is_running():
         return {"ok": False, "msg": "Сначала дождитесь окончания обработки"}
-    runtime.close_state()
     log.info("список файлов забыт по просьбе пользователя")
-    return _resp(safe_remove_db_files(paths.DB_FILE))
+    # Закрыть базу и удалить файлы под одним замком: иначе опрос статуса откроет её заново
+    return _resp(runtime.drop_state(lambda: safe_remove_db_files(paths.DB_FILE)))
