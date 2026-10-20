@@ -87,7 +87,7 @@ def _working_bash() -> str | None:
         if not cand or not os.path.exists(cand):
             continue
         try:
-            out = subprocess.run([cand, "-c", "echo ok"], capture_output=True, text=True, timeout=20)
+            out = subprocess.run([cand, "-c", "echo ok"], capture_output=True, text=True, encoding="utf-8", timeout=20)
         except (OSError, subprocess.TimeoutExpired):
             continue
         if out.returncode == 0 and out.stdout.strip() == "ok":
@@ -99,5 +99,5 @@ def test_webui_sh_syntax():
     bash = _working_bash()
     if not bash:
         pytest.skip("нет рабочего bash")
-    res = subprocess.run([bash, "-n", str(ROOT / "webui.sh")], capture_output=True, text=True)
+    res = subprocess.run([bash, "-n", str(ROOT / "webui.sh")], capture_output=True, text=True, encoding="utf-8")
     assert res.returncode == 0, res.stderr

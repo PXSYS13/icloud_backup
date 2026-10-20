@@ -358,7 +358,9 @@ class Pipeline:
                     self._sleep_backoff(attempt - 1, e.text)
                 else:
                     raise
-        seen_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+        # С долями секунды: два прохода списка в одну секунду (тесты, быстрый повтор) иначе
+        # получили бы одну метку, и retire_unseen не отличил бы старые записи от свежих
+        seen_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")
         batch: list[dict] = []
         found = 0
         for item in self._iter_with_retry():
