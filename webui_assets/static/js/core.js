@@ -14,7 +14,15 @@
   App.byId = (id) => document.getElementById(id);
   App.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  App.html = (el, markup) => { if (el && el.innerHTML !== markup) el.innerHTML = markup; };
+  // Перерисовываем только если разметка правда изменилась. Сравниваем с тем, что ставили сами,
+  // а не с el.innerHTML: браузер пересериализует <path/> как <path></path>, и сравнение
+  // всегда проваливалось бы — кнопки пересоздавались бы каждые 1,5 секунды
+  const lastMarkup = new WeakMap();
+  App.html = (el, markup) => {
+    if (!el || lastMarkup.get(el) === markup) return;
+    lastMarkup.set(el, markup);
+    el.innerHTML = markup;
+  };
   App.text = (el, value) => { if (el && el.textContent !== String(value)) el.textContent = String(value); };
 
   // ── Форматирование по-русски ──

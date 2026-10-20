@@ -393,7 +393,7 @@ class ICloudPdEngine:
             if code == "ACCESS_DENIED" or "ACCESS_DENIED" in text:
                 return EngineError("access_denied",
                                    "Apple не даёт доступ к фото через веб (ACCESS_DENIED). На айфоне: "
-                                   "Настройки → ваше имя → iCloud → включите «Доступ к данным iCloud в вебе» "
+                                   "Настройки → ваше имя → iCloud → включите «Доступ к данным iCloud в интернете» (в iOS 26.4 и новее: iCloud.com → «Разрешить доступ к данным») "
                                    "и выключите «Расширенную защиту данных». Подождите пару минут и попробуйте снова.",
                                    text)
             if "Invalid global session" in text or code in ("421", "450", "500"):

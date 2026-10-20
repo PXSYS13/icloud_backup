@@ -277,10 +277,13 @@
       App.html(byId('home-safety'), showSafety ? App.safetyNote() : '');
       byId('home-grid').classList.toggle('hidden', ph !== 'ready' || offline);
       if (ph === 'ready' && !offline) {
-        App.html(byId('home-library'), libraryCard(s));
-        App.html(byId('home-feed'), pipe.started_at ? App.feedCard(pipe.events) : '');
+        const library = libraryCard(s);
+        const feed = pipe.started_at ? App.feedCard(pipe.events) : '';
+        App.html(byId('home-library'), library);
+        App.html(byId('home-feed'), feed);
         App.html(byId('home-folder'), App.folderCard(s));
         App.html(byId('home-recent'), App.recentCard(s.recent, s.now));
+        byId('home-grid').classList.toggle('single', !library && !feed);
       }
       // Скачивание только что закончилось целиком — показываем итоги
       if (pipe.state === 'done' && pipe.mode === 'download' && pipe.finished_at && pipe.finished_at !== lastDoneAt) {

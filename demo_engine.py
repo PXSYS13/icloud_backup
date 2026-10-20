@@ -26,7 +26,7 @@ from utils import atomic_write_text
 DEMO_CODE = "123456"
 MANIFEST = "manifest.json"
 # Байт в секунду при демо-скачивании (ICLOUD_BK_DEMO_SPEED переопределяет)
-DEFAULT_SPEED = 6 * 1024 * 1024
+DEFAULT_SPEED = int(1.5 * 1024 * 1024)
 # Индекс файла, у которого первая попытка обрывается — чтобы показать повтор
 FLAKY_INDEX = 4
 
@@ -53,7 +53,7 @@ class DemoStream:
                 if not chunk:
                     return
                 sent += len(chunk)
-                if self.flaky and sent > 256 * 1024:
+                if self.flaky and sent > 8 * 1024:
                     raise ConnectionResetError("demo: соединение оборвалось")
                 yield chunk
                 # Держим скорость: отдаём не быстрее speed байт в секунду
@@ -92,7 +92,7 @@ class DemoEngine:
         if password == "denied":
             raise EngineError("access_denied",
                               "Apple не даёт доступ к фото через веб (ACCESS_DENIED). На айфоне: Настройки → "
-                              "ваше имя → iCloud → включите «Доступ к данным iCloud в вебе» и выключите "
+                              "ваше имя → iCloud → включите «Доступ к данным iCloud в интернете» (в iOS 26.4 и новее: iCloud.com → «Разрешить доступ к данным») и выключите "
                               "«Расширенную защиту данных». Подождите пару минут и попробуйте снова.")
         time.sleep(0.8)
         with self._lock:

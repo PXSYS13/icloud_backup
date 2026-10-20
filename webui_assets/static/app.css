@@ -469,11 +469,11 @@ button.small .i,.btn.small .i{width:16px;height:16px}
 /* ── Формы ── */
 label.field{display:flex;flex-direction:column;gap:8px;margin:14px 0}
 label.field>span{font-size:14px;font-weight:600;color:var(--text-2)}
-input[type=text],input[type=password],textarea,select{
+input[type=text],input[type=password],input[type=email],textarea,select{
   width:100%;font:inherit;font-size:15px;color:var(--text);background:var(--surface);border:1px solid var(--border-strong);
   border-radius:12px;min-height:44px;padding:10px 14px;outline:none;transition:border-color .15s,box-shadow .15s;
 }
-input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{border-color:var(--accent-line);box-shadow:0 0 0 4px var(--accent-soft)}
+input[type=text]:focus,input[type=password]:focus,input[type=email]:focus,textarea:focus,select:focus{border-color:var(--accent-line);box-shadow:0 0 0 4px var(--accent-soft)}
 textarea{min-height:120px;font-family:var(--mono);font-size:13px;resize:vertical}
 /* Карточки выбора: источники, «весь Диск / выбранные папки», типы файлов */
 .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
