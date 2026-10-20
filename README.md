@@ -268,4 +268,4 @@ python webui.py
 
 ## Лицензия
 
-[MIT](LICENSE). Программа распространяется «как есть», без гарантий. Для входа в iCloud и получения файлов используется [icloudpd](https://github.com/icloud-photos-downloader/icloud_photos_downloader) (лицензия MIT), его уведомление сохранено в файле LICENSE. Программа не связана с Apple. Автор — Davron, 2026.
+[MIT](LICENSE). Программа распространяется «как есть», без гарантий. Для входа в iCloud и получения файлов используется [icloudpd](https://github.com/icloud-photos-downloader/icloud_photos_downloader) (лицензия MIT), его уведомление сохранено в файле [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md). Программа не связана с Apple. Автор — Davron, 2026.
