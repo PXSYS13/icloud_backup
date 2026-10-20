@@ -50,16 +50,16 @@
             <a class="btn" id="help-github" href="https://github.com/PXSYS13/icloud_backup/issues" target="_blank" rel="noopener">${I('code')}Вопрос на GitHub</a>
           </div></div>
         <div class="card"><details id="help-logs-box"><summary>Журналы программы — для поддержки</summary><div class="body">
-          <div class="row" style="margin-bottom:10px"><select id="help-log-select" style="max-width:360px"></select>
+          <div class="row mb-sm"><select id="help-log-select" class="log-select" aria-label="Файл журнала"></select>
             <button data-action="help-log-show">Показать</button></div>
           <div class="console" id="help-log"></div></div></details></div>
         <div class="card">${head('alert', 'wait', 'Если что-то пошло не так', 'Нужно редко. Скачанные файлы не удаляются')}
           <details><summary>Забыть список файлов</summary><div class="body">
             <p class="small">Программа забудет, что уже скачала, и при следующем запуске соберёт список заново. Файлы в папке не удаляются, и то, что лежит на месте с тем же размером, второй раз качаться не будет. Файлы, которые вы перенесли из папки, скачаются заново.</p>
-            <div class="row" style="margin-top:12px"><button class="danger" data-action="forget-list">Забыть список файлов</button></div></div></details>
+            <div class="row mt-sm"><button class="danger" data-action="forget-list">Забыть список файлов</button></div></div></details>
           <details><summary>Выйти из Apple ID</summary><div class="body">
             <p class="small">Удаляет сессию с этого компьютера. Чтобы продолжить, нужно будет войти снова.</p>
-            <div class="row" style="margin-top:12px"><button class="danger" data-action="logout">Выйти</button></div></div></details></div>
+            <div class="row mt-sm"><button class="danger" data-action="logout">Выйти</button></div></div></details></div>
         </div>`;
       byId('help-logs-box').addEventListener('toggle', (e) => { if (e.target.open && !logsLoaded) loadLogs(); });
     },

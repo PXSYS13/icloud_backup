@@ -25,6 +25,7 @@
     const ph = phase(s);
     if (ph === 'setup') return p('', (s.account || {}).restoring ? 'Проверяю сессию' : 'Нужен вход');
     if (ph === 'code') return p('wait', 'Ждём код подтверждения');
+    const lib = s.library || {};
     const pipe = s.pipeline || {};
     const since = pipe.started_at && pipe.running ? ` · ${fmt.duration(nowOf(s) - pipe.started_at)}` : '';
     switch (pipe.state) {
@@ -34,9 +35,14 @@
       case 'waiting': return p('wait', 'Жду Apple' + (pipe.wait_until ? ` · повтор в ${fmt.hhmmss(pipe.wait_until)}` : ''));
       case 'needs_login': return p('err', 'Нужно войти снова');
       case 'needs_action': case 'error': return p('err', 'Нужно ваше действие');
-      case 'done': return p('ok', pipe.mode === 'scan' ? 'Список получен' : 'Готово');
+      case 'done':
+        if (lib.total) return p('ok', pipe.mode === 'scan' ? 'Список получен' : 'Готово');
+        return p('ok', 'Готово к скачиванию'); // список забыли после скачивания — как при первом запуске
       case 'stopped': return p('', 'Остановлено');
-      default: return p('ok', 'Готово к скачиванию');
+      default:
+        // Плашка и заголовок рядом не должны спорить: после полного скачивания — «Всё скачано»
+        if (lib.total && (lib.downloaded || 0) >= lib.total && !lib.failed) return p('ok', 'Всё скачано');
+        return p('ok', 'Готово к скачиванию');
     }
   }
 
@@ -86,21 +92,22 @@
     const left = Math.max(0, (lib.pending || 0));
     switch (pipe.state) {
       case 'scanning': return ['Смотрю, что лежит в iCloud', 'Это занимает от минуты до нескольких минут — зависит от размера медиатеки.'];
-      case 'downloading': return [`Скачиваю: ${fmt.num(done)} из ${fmt.files(total)}`,
+      case 'downloading': return [`Скачиваю: ${fmt.num(done)} из ${fmt.filesOf(total)}`,
         left ? `Осталось ${fmt.files(left)}, ${fmt.bytes(lib.bytes_pending || 0)}.${pipe.eta_sec ? ` Примерно ${fmt.duration(pipe.eta_sec)}.` : ''} Можно свернуть браузер, но не закрывайте чёрное окно программы.` : 'Заканчиваю.'];
       case 'paused': return ['Пауза', 'Скачанное сохранено. Нажмите «Продолжить», когда будете готовы.'];
       case 'waiting': return ['Жду ответа Apple', (pipe.wait_reason || 'Apple отвечает с перебоями') + '. Программа повторит сама — ничего делать не нужно.'];
       case 'needs_login': return ['Сессия Apple истекла', 'Так бывает: Apple ограничивает срок входа. Войдите снова — скачивание продолжится с того же места.'];
       case 'needs_action': case 'error': return ['Нужно ваше действие', (pipe.error || {}).text || 'Что-то пошло не так — подробности ниже.'];
-      case 'stopped': return ['Остановлено', `Скачано ${fmt.num(done)} из ${fmt.files(total)}. «Продолжить» докачает остальное без повторов.`];
+      case 'stopped': return ['Остановлено', `Скачано ${fmt.num(done)} из ${fmt.filesOf(total)}. «Продолжить» докачает остальное без повторов.`];
       case 'done':
+        if (!total) return ['Готово к скачиванию', 'Сначала посмотрим, сколько фото и видео лежит в iCloud и хватит ли места на диске, — потом скачаем всё.'];
         if (pipe.mode === 'scan') return [`В iCloud ${fmt.files(total)}`, `${fmt.bytes(lib.bytes_total || 0)}. Проверьте папку и место на диске — и можно скачивать.`];
-        if (lib.failed) return [`Готово: скачано ${fmt.num(done)} из ${fmt.files(total)}`, `Не скачались ${fmt.files(lib.failed)} — их можно повторить.`];
+        if (lib.failed) return [`Готово: скачано ${fmt.num(done)} из ${fmt.filesOf(total)}`, `Не скачались ${fmt.files(lib.failed)} — их можно повторить.`];
         return ['Готово: все файлы сохранены', 'Посмотрите итоги — там путь к папке и что можно сделать дальше.'];
       default:
         if (!total) return ['Готово к скачиванию', 'Сначала посмотрим, сколько фото и видео лежит в iCloud и хватит ли места на диске, — потом скачаем всё.'];
         if (done >= total && !lib.failed) return ['Всё скачано', 'Медиатека целиком лежит в вашей папке. Можно обработать файлы или залить копию в Яндекс Диск.'];
-        if (done) return [`Скачано ${fmt.num(done)} из ${fmt.files(total)}`, `Осталось ${fmt.files(left)}, ${fmt.bytes(lib.bytes_pending || 0)}. Нажмите «Продолжить».`];
+        if (done) return [`Скачано ${fmt.num(done)} из ${fmt.filesOf(total)}`, `Осталось ${fmt.files(left)}, ${fmt.bytes(lib.bytes_pending || 0)}. Нажмите «Продолжить».`];
         return [`В iCloud ${fmt.files(total)}`, `${fmt.bytes(lib.bytes_total || 0)}: ${fmt.num(lib.photos || 0)} фото, ${fmt.num(lib.live || 0)} Live Photo, ${fmt.num(lib.videos || 0)} видео. Проверьте папку и место на диске — и можно скачивать.`];
     }
   }
@@ -173,7 +180,7 @@
       return `<div class="stats">${tile('', 'В iCloud', '?', 'список получу при проверке')}
         ${tile('', 'Свободно', free, 'на диске с папкой')}</div>`;
     }
-    const done = tile('ok', 'Скачано', fmt.num(lib.downloaded || 0), `${fmt.bytes(lib.bytes_done || 0)} · из ${fmt.files(lib.total)}`);
+    const done = tile('ok', 'Скачано', fmt.num(lib.downloaded || 0), `${fmt.bytes(lib.bytes_done || 0)} · из ${fmt.filesOf(lib.total)}`);
     const left = tile('', 'Осталось', fmt.num(lib.pending || 0), lib.pending
       ? `${fmt.bytes(lib.bytes_pending || 0)}${pipe.eta_sec ? ` · ≈ ${fmt.duration(pipe.eta_sec)}` : ''}` : 'очередь пуста');
     let third;
@@ -203,15 +210,15 @@
     const years = (lib.years || []).map((y) => {
       const pct = fmt.pct(y.done, y.count);
       return `<tr><td><b>${esc(y.year)}</b></td><td class="num">${fmt.files(y.count)}</td><td class="num">${fmt.bytes(y.bytes)}</td>
-        <td style="min-width:140px"><span class="tiny">${y.done >= y.count ? 'скачано' : `${fmt.num(y.done)} из ${fmt.num(y.count)}`}</span>
+        <td class="col-progress"><span class="tiny">${y.done >= y.count ? 'скачано' : `${fmt.num(y.done)} из ${fmt.num(y.count)}`}</span>
         <div class="bar thin"><span class="done" style="width:${pct.toFixed(2)}%"></span></div></td></tr>`;
     }).join('');
     const listed = lib.listed_at ? `список от ${esc(listedText(lib.listed_at))}` : '';
     return `<div class="card"><div class="card-head"><span class="icon-box accent">${icon('cloud')}</span>
-      <div class="grow"><h3>Медиатека iCloud</h3><span class="tiny">${fmt.files(lib.total)} · ${fmt.bytes(lib.bytes_total || 0)}${listed ? ` · ${listed}` : ''}</span></div></div>
+      <div class="grow"><h2>Медиатека iCloud</h2><span class="tiny">${fmt.files(lib.total)} · ${fmt.bytes(lib.bytes_total || 0)}${listed ? ` · ${listed}` : ''}</span></div></div>
       <div class="kinds">${kind('image', lib.photos || 0, lib.bytes_photos || 0, 'фото')}${kind('image', lib.live || 0, lib.bytes_live || 0, 'Live Photo')}${kind('video', lib.videos || 0, lib.bytes_videos || 0, 'видео')}</div>
-      ${years ? `<div class="scroll years" style="margin-top:16px;max-height:320px"><table class="list"><thead><tr><th>Год</th><th>Файлов</th><th>Размер</th><th>Скачано</th></tr></thead><tbody>${years}</tbody></table></div>` : ''}
-      ${lib.duplicates ? `<p class="tiny" style="margin-top:12px">Одинаковых файлов перенесено в «_duplicates»: ${fmt.num(lib.duplicates)}</p>` : ''}
+      ${years ? `<div class="scroll years mt-md"><table class="list"><thead><tr><th>Год</th><th>Файлов</th><th>Размер</th><th>Скачано</th></tr></thead><tbody>${years}</tbody></table></div>` : ''}
+      ${lib.duplicates ? `<p class="tiny mt-sm">Одинаковых файлов перенесено в «_duplicates»: ${fmt.num(lib.duplicates)}</p>` : ''}
     </div>`;
   }
 

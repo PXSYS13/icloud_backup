@@ -65,7 +65,7 @@
     const items = (events || []).slice(0, 8).map((e) => `<li class="${esc(e.kind)}">
         <time>${fmt.hhmm(e.at)}</time><span class="f-dot"></span>
         <div class="f-text">${esc(e.text)}</div></li>`).join('');
-    return `<div class="card"><div class="card-head"><div class="grow"><h3>Что происходит</h3>
+    return `<div class="card"><div class="card-head"><div class="grow"><h2>Что происходит</h2>
       <span class="tiny">Главные события, новые сверху</span></div></div>
       ${items ? `<ul class="feed">${items}</ul>` : `<div class="empty">${icon('hourglass')}Событий пока нет</div>`}</div>`;
   };
@@ -81,7 +81,7 @@
         ${when ? `<span class="f-time">${esc(when)}</span>` : ''}</li>`;
     }).join('');
     if (!rows) return '';
-    return `<div class="card"><div class="card-head"><div class="grow"><h3>Последние скачанные</h3>
+    return `<div class="card"><div class="card-head"><div class="grow"><h2>Последние скачанные</h2>
       <span class="tiny">Эти файлы уже лежат в вашей папке</span></div></div><ul class="files">${rows}</ul></div>`;
   };
 
@@ -91,25 +91,26 @@
     const dir = cfg.download_dir || '';
     const fsp = s.free_space || {};
     const free = fsp.free != null ? `свободно ${fmt.bytes(fsp.free)}` : '';
-    const fat = fsp.fat ? `<p class="tiny" style="margin-top:8px;color:var(--warn)">Диск в формате ${esc(fsp.fs || 'FAT32')}: файлы больше 4 ГБ на него не запишутся. Для больших видео нужен NTFS или exFAT.</p>` : '';
+    const fat = fsp.fat ? `<p class="tiny mt-xs warn-text">Диск в формате ${esc(fsp.fs || 'FAT32')}: файлы больше 4 ГБ на него не запишутся. Для больших видео нужен NTFS или exFAT.</p>` : '';
     const busy = (s.pipeline || {}).running || (s.job || {}).running;
-    const note = cfg.download_dir_set ? '' : '<p class="tiny" style="margin-top:8px">Это папка по умолчанию внутри папки программы. Лучше выбрать папку на диске, где хватит места, например на внешнем.</p>';
+    const note = cfg.download_dir_set ? '' : '<p class="tiny mt-xs">Это папка по умолчанию внутри папки программы. Лучше выбрать папку на диске, где хватит места, например на внешнем.</p>';
     const layout = cfg.by_month ? 'по годам и месяцам: 2023/2023-07' : 'все файлы в одной папке';
     return `<div class="card" id="folder-card"><div class="card-head"><span class="icon-box">${icon('folder')}</span>
-      <div class="grow"><h3>Папка для фото</h3><span class="tiny">${esc(free)}${free ? ' · ' : ''}${layout}</span></div></div>
+      <div class="grow"><h2>Папка для фото</h2><span class="tiny">${esc(free)}${free ? ' · ' : ''}${layout}</span></div></div>
       <div class="path-box" title="${esc(dir)}">${icon('hdd')}<code>${esc(dir)}</code></div>${note}${fat}
-      <div class="row" style="margin-top:14px;gap:8px">
+      <div class="row mt-md">
         <button class="small" data-action="open-folder" data-which="download">${icon('folder')}Открыть папку</button>
         <button class="small ghost" data-action="copy-path" data-path="${esc(dir)}">${icon('copy')}Скопировать путь</button>
         ${editable ? (busy ? '<span class="tiny">Сменить папку можно после остановки скачивания</span>'
           : `<button class="small ghost" data-action="toggle-folder-form">${icon('sliders')}Сменить папку</button>`) : ''}
       </div>
-      <div class="access-form hidden" data-folder-form style="margin-top:14px">
+      <div class="access-form hidden mt-md" data-folder-form>
         <label class="field"><span>Куда сохранять — полный путь к папке</span>
           <input type="text" data-field="folder-input" spellcheck="false" placeholder="D:\\iCloudBackup" value="${esc(dir)}"></label>
         <p class="tiny">Корень диска (C:\\ или E:\\) выбрать нельзя — папку программа создаст сама. Если сменить папку посреди
           скачивания, скачанное останется в старой папке, а остальное докачается в новую.</p>
-        <div class="row" style="margin-top:10px"><button class="primary small" data-action="folder-save">${icon('check')}Сохранить папку</button></div>
+        <div class="err-box hidden" role="alert" id="folder-error" data-form-error>${icon('alert')}<span></span></div>
+        <div class="row mt-sm"><button class="primary small" data-action="folder-save">${icon('check')}Сохранить папку</button></div>
       </div></div>`;
   };
 
@@ -118,13 +119,32 @@
     wrap.classList.toggle('hidden');
     if (!wrap.classList.contains('hidden')) wrap.querySelector('input').focus();
   });
+  // Ошибка формы — рядом с кнопкой, а не только уведомлением внизу; поле помечается для
+  // экранного диктора (aria-invalid, aria-describedby) и получает фокус
+  App.formError = (form, input, text) => {
+    const box = form.querySelector('[data-form-error]');
+    if (!box) return;
+    box.classList.toggle('hidden', !text);
+    App.text(box.querySelector('span'), text || '');
+    if (!input) return;
+    if (text) {
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', box.id);
+      input.focus();
+    } else {
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
+    }
+  };
   App.action('folder-save', (btn) => App.run(btn, async () => {
-    const input = btn.closest('.card').querySelector('[data-field="folder-input"]');
+    const form = btn.closest('[data-folder-form]');
+    const input = form.querySelector('[data-field="folder-input"]');
     const dir = input.value.trim();
-    if (!dir) return { ok: false, error: 'Укажите папку — например D:\\iCloudBackup' };
-    const res = await App.api.post('/api/config/download_dir', { download_dir: dir });
+    const res = dir ? await App.api.post('/api/config/download_dir', { download_dir: dir })
+      : { ok: false, error: 'Укажите папку — например D:\\iCloudBackup' };
+    App.formError(form, input, res.ok ? '' : res.error);
     if (res.ok) {
-      btn.closest('[data-folder-form]').classList.add('hidden');
+      form.classList.add('hidden');
       return { ok: true, data: { msg: 'Папка сохранена' } };
     }
     return res;
@@ -135,17 +155,17 @@
     const sp = s.space || {};
     if (!sp.short) return '';
     return `<div class="banner safety"><span class="b-icon">${icon('hdd')}</span><div>
-      <h3>Места на диске может не хватить</h3>
+      <h2>Места на диске может не хватить</h2>
       <p>Осталось скачать ${fmt.bytes(sp.need)}, а на диске с папкой свободно ${fmt.bytes(sp.free)}. Выберите папку на другом
         диске, например на внешнем, или освободите место. Если место закончится, программа остановится и покажет кнопку
         «Я освободил место — продолжить»; скачанное не пропадёт.</p></div></div>`;
   };
   App.errorBanner = (title, text, buttons = '') =>
     `<div class="banner action"><span class="b-icon">${icon('alert')}</span><div>
-      <h3>${esc(title)}</h3><p>${esc(text)}</p>${buttons ? `<div class="row actions">${buttons}</div>` : ''}</div></div>`;
+      <h2>${esc(title)}</h2><p>${esc(text)}</p>${buttons ? `<div class="row actions">${buttons}</div>` : ''}</div></div>`;
   App.noticeBanner = (title, text, buttons = '') =>
     `<div class="banner notice"><span class="b-icon">${icon('info')}</span><div>
-      <h3>${esc(title)}</h3><p>${esc(text)}</p>${buttons ? `<div class="row actions">${buttons}</div>` : ''}</div></div>`;
+      <h2>${esc(title)}</h2><p>${esc(text)}</p>${buttons ? `<div class="row actions">${buttons}</div>` : ''}</div></div>`;
   App.safetyNote = () => `<p class="safety-note">${icon('alert')}<span>Пока всё не скачано, не удаляйте фото из iCloud и не
     выключайте «Фото iCloud» на айфоне. Программа из iCloud только читает — удалить там что-то она не может.</span></p>`;
 
@@ -189,7 +209,7 @@
     App.go('#/home');
     setTimeout(() => {
       const wrap = document.querySelector('#folder-card [data-folder-form]');
-      if (wrap) { wrap.classList.remove('hidden'); wrap.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      if (wrap) { wrap.classList.remove('hidden'); wrap.scrollIntoView({ behavior: App.reducedMotion() ? 'auto' : 'smooth', block: 'center' }); }
     }, 100);
   });
   App.action('process-start', (btn) => App.run(btn, () => App.api.post('/api/process/start', { kind: btn.dataset.kind })));
@@ -212,7 +232,7 @@
     if (job.running) {
       const bar = total ? `<div class="bar"><span class="done" style="width:${fmt.pct(done, total).toFixed(2)}%"></span></div>` : '';
       return `<div class="card job-box"><div class="card-head"><span class="icon-box info">${icon('activity')}</span>
-        <div class="grow"><h3>${esc(job.title)}</h3><span class="tiny">${total ? `${fmt.num(done)} из ${fmt.num(total)}` : 'готовлюсь…'}${
+        <div class="grow"><h2>${esc(job.title)}</h2><span class="tiny">${total ? `${fmt.num(done)} из ${fmt.num(total)}` : 'готовлюсь…'}${
           p.current ? ` · ${esc(p.current)}` : ''}</span></div>
         <button class="small" data-action="process-stop">${icon('stop')}Остановить</button></div>${bar}
         ${p.msg ? `<p class="tiny">${esc(p.msg)}</p>` : ''}</div>`;
@@ -221,7 +241,7 @@
     const r = job.result || {};
     if (r.ok === false) return App.errorBanner(`${job.title}: остановлено`, r.msg || 'Не получилось');
     const text = r.text || (r.done != null ? `Готово: ${fmt.num(r.done)} ${fmt.plural(r.done, 'файл', 'файла', 'файлов')}` : 'Готово');
-    return `<div class="ok-box" style="margin-top:0">${icon('check')}<span>${esc(job.title)}. ${esc(text)}${
+    return `<div class="ok-box mt-0">${icon('check')}<span>${esc(job.title)}. ${esc(text)}${
       r.skipped ? `, пропущено ${fmt.num(r.skipped)}` : ''}${r.errors || r.failed ? `, ошибок ${fmt.num(r.errors || r.failed)}` : ''}</span></div>`;
   };
 })();

@@ -23,11 +23,11 @@
         : check && check.unreachable ? 'Яндекс сейчас не ответил на проверку — ключ, скорее всего, в порядке'
           : check && !check.ok ? esc(check.msg || 'Яндекс не принял ключ') : `Ключ сохранён (${esc(cfg.ya_token_masked)})`;
       return `<div class="state"><span class="dot ${check && check.ok ? 'ok' : check && !check.unreachable ? 'err' : ''}"></span><span>${acc}</span></div>
-        <div class="row" style="margin-top:12px"><button class="small" data-action="toggle-token-form">Заменить ключ</button>
+        <div class="row mt-sm"><button class="small" data-action="toggle-token-form">Заменить ключ</button>
           <button class="small danger" data-action="token-clear">Удалить ключ</button></div>`;
     }
     return `<div class="state"><span class="dot"></span><span>Ключ не задан — без него загрузка невозможна</span></div>
-      <div class="row" style="margin-top:12px"><button class="small primary" data-action="toggle-token-form">${icon('key')}Ввести ключ</button></div>`;
+      <div class="row mt-sm"><button class="small primary" data-action="toggle-token-form">${icon('key')}Ввести ключ</button></div>`;
   }
 
   App.screens.yandex = {
@@ -37,27 +37,28 @@
         <div id="ya-job"></div>
         <div class="stack">
           <div class="banner safety"><span class="b-icon">${icon('info')}</span><div>
-            <h3>Загрузка занимает обычное место на Диске</h3>
+            <h2>Загрузка занимает обычное место на Диске</h2>
             <p>Файлы, которые заливает программа, считаются как любые другие и занимают место вашего тарифа. В безлимит для фото попадает только
               автозагрузка из мобильного приложения Яндекс Диска. Перед загрузкой программа проверит, хватит ли места.</p></div></div>
-          <div class="card"><div class="card-head"><span class="icon-box">${icon('key')}</span><div class="grow"><h3>Ключ доступа к Диску</h3>
+          <div class="card"><div class="card-head"><span class="icon-box">${icon('key')}</span><div class="grow"><h2>Ключ доступа к Диску</h2>
               <span class="tiny">Тот же, что в «Яндекс БК». Хранится только на этом компьютере</span></div></div>
             <div id="ya-token"></div>
-            <div class="access-form hidden" id="ya-token-form" style="margin-top:14px">
-              <ol class="small muted" style="padding-left:18px">
+            <div class="access-form hidden mt-md" id="ya-token-form">
+              <ol class="small muted">
                 <li>Нажмите «Открыть страницу Яндекса» и войдите в аккаунт, на Диск которого заливаете.</li>
                 <li>Нажмите там «Получить OAuth-токен» и скопируйте длинную строку целиком.</li>
                 <li>Вставьте её сюда и нажмите «Проверить и сохранить».</li></ol>
-              <div class="row" style="margin-top:12px"><a class="btn" href="${POLYGON_URL}" target="_blank" rel="noopener">${icon('external')}Открыть страницу Яндекса</a>
+              <div class="row mt-sm"><a class="btn" href="${POLYGON_URL}" target="_blank" rel="noopener">${icon('external')}Открыть страницу Яндекса</a>
                 <a class="btn ghost" href="${GUIDE_URL}" target="_blank" rel="noopener">${icon('book')}Инструкция с картинками</a></div>
               <label class="field"><span>Ключ доступа (токен)</span>
                 <input type="password" data-field="token-input" autocomplete="off" spellcheck="false" placeholder="y0_…"></label>
+              <div class="err-box hidden" role="alert" id="token-error" data-form-error>${icon('alert')}<span></span></div>
               <div class="row"><button class="primary" data-action="token-save">${icon('check')}Проверить и сохранить</button></div></div></div>
-          <div class="card"><div class="card-head"><span class="icon-box accent">${icon('cloud')}</span><div class="grow"><h3>Загрузить копию</h3>
+          <div class="card"><div class="card-head"><span class="icon-box accent">${icon('cloud')}</span><div class="grow"><h2>Загрузить копию</h2>
               <span class="tiny" id="ya-sub"></span></div></div>
             <p class="lead">Программа пройдёт по папке с фото, пропустит файлы, которые на Диске уже есть (сверяет по содержимому), и зальёт остальное
               в «iCloud БК». Папки «_duplicates» и «_heic_originals» не заливаются. Если Яндекс попросит обращаться реже (ошибка 429), программа подождёт минуту и продолжит.</p>
-            <div class="row"><button class="primary big" data-action="process-start" data-kind="yandex" id="ya-start">${icon('cloud-down')}Загрузить в Яндекс Диск</button>
+            <div class="row"><button class="primary big" data-action="process-start" data-kind="yandex" id="ya-start" aria-describedby="ya-note">${icon('cloud-down')}Загрузить в Яндекс Диск</button>
               <span class="tiny" id="ya-note"></span></div></div>
         </div>`;
     },
@@ -81,13 +82,15 @@
     if (!f.classList.contains('hidden')) f.querySelector('input').focus();
   });
   App.action('token-save', (btn) => App.run(btn, async () => {
-    const input = byId('ya-token-form').querySelector('[data-field="token-input"]');
+    const form = byId('ya-token-form');
+    const input = form.querySelector('[data-field="token-input"]');
     const token = input.value.trim();
-    if (!token) return { ok: false, error: 'Вставьте ключ — длинную строку со страницы Яндекса' };
-    const res = await App.api.post('/api/config/token', { token });
+    const res = token ? await App.api.post('/api/config/token', { token })
+      : { ok: false, error: 'Вставьте ключ — длинную строку со страницы Яндекса' };
+    App.formError(form, input, res.ok ? '' : res.error);
     if (res.ok) {
       input.value = '';
-      byId('ya-token-form').classList.add('hidden');
+      form.classList.add('hidden');
       check = (res.data || {}).check || null;
     }
     return res;

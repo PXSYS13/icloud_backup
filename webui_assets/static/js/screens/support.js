@@ -20,7 +20,7 @@
             <a class="btn big" id="support-github" href="https://github.com/PXSYS13/icloud_backup" target="_blank" rel="noopener">${I('code')}Проект на GitHub</a>
           </div>
         </section>
-        <div class="card mt"><h3>Другие программы автора</h3>
+        <div class="card mt"><h2>Другие программы автора</h2>
           <div class="links-grid">
             <a id="support-yadisk" href="https://github.com/PXSYS13/yadisk_backup" target="_blank" rel="noopener"><span class="ico">${I('hdd')}</span><span>«Яндекс БК» — скачать весь Яндекс Диск и безлимит фото</span></a>
           </div></div>`;

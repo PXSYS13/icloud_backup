@@ -36,6 +36,8 @@
     plural,
     num: (n) => Math.trunc(n || 0).toLocaleString('ru-RU'),
     files: (n) => `${App.fmt.num(n)} ${plural(n || 0, 'файл', 'файла', 'файлов')}`,
+    // После «из» — родительный падеж: «из 1 файла», «из 3 файлов», «из 34 файлов»
+    filesOf: (n) => `${App.fmt.num(n)} ${plural(n || 0, 'файла', 'файлов', 'файлов')}`,
     bytes(n) {
       n = Number(n) || 0;
       const units = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];
@@ -176,6 +178,9 @@
     }
   };
 
+  // Человек попросил систему убрать лишнее движение — плавную прокрутку тоже не делаем
+  App.reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   // ── Тема: светлая или тёмная; выбор помнит браузер ──
   App.theme = {
     get: () => document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
@@ -245,31 +250,35 @@
     toastTimer = setTimeout(() => el.classList.add('hidden'), ms);
   };
 
+  // Родной <dialog>: сам запирает фокус внутри, закрывается по Escape и возвращает фокус
+  // на кнопку, которая его открыла. Опасные вопросы — alertdialog с фокусом на «Отмена»
   App.confirm = ({ title, text, ok = 'Да', cancel = 'Отмена', danger = false }) => new Promise((resolve) => {
     const root = App.byId('dialog-root');
-    root.innerHTML = `<div class="dialog-backdrop" data-dialog-close="1">
-      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
-        <h3 id="dialog-title">${App.esc(title)}</h3>
-        <p>${App.esc(text)}</p>
+    const opener = document.activeElement;
+    root.innerHTML = `<dialog class="dialog" role="${danger ? 'alertdialog' : 'dialog'}" aria-labelledby="dialog-title" aria-describedby="dialog-text">
+      <div class="dialog-body">
+        <h2 id="dialog-title">${App.esc(title)}</h2>
+        <p id="dialog-text">${App.esc(text)}</p>
         <div class="row actions">
           <button type="button" data-dialog-answer="0">${App.esc(cancel)}</button>
           <button type="button" class="${danger ? 'danger' : 'primary'}" data-dialog-answer="1">${App.esc(ok)}</button>
         </div>
-      </div></div>`;
-    const close = (answer) => {
-      document.removeEventListener('keydown', onKey);
-      root.innerHTML = '';
-      resolve(answer);
-    };
-    const onKey = (e) => { if (e.key === 'Escape') close(false); };
-    document.addEventListener('keydown', onKey);
-    root.querySelector('.dialog-backdrop').addEventListener('click', (e) => {
+      </div></dialog>`;
+    const dlg = root.querySelector('dialog');
+    let answer = false;
+    dlg.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-dialog-answer]');
-      if (btn) close(btn.dataset.dialogAnswer === '1');
-      else if (e.target.dataset.dialogClose) close(false);
+      if (btn) { answer = btn.dataset.dialogAnswer === '1'; dlg.close(); }
+      else if (e.target === dlg) dlg.close(); // клик по затемнению вокруг окна
     });
-    const okBtn = root.querySelector('[data-dialog-answer="1"]');
-    if (okBtn) okBtn.focus();
+    dlg.addEventListener('close', () => {
+      root.innerHTML = '';
+      if (opener && opener.isConnected && typeof opener.focus === 'function') opener.focus();
+      resolve(answer);
+    });
+    dlg.showModal();
+    const first = root.querySelector(danger ? '[data-dialog-answer="0"]' : '[data-dialog-answer="1"]');
+    if (first) first.focus();
   });
 
   // ── Действия: <button data-action="имя"> → App.actions.имя(кнопка, событие) ──
@@ -309,6 +318,7 @@
       const tabRoute = a.dataset.route;
       const owner = ['prepare', 'login', 'done'].includes(route) ? 'home' : route;
       a.classList.toggle('active', tabRoute === owner);
+      if (tabRoute === owner) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     }
     window.scrollTo({ top: 0 });
   };

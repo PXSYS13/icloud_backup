@@ -11,18 +11,18 @@
         <section class="card hero" id="done-hero"></section>
         <div class="mt" id="done-folder"></div>
         <div class="mt"><section class="banner donate"><span class="b-icon">${icon('heart')}</span><div>
-          <h3>Программа помогла? Поддержите проект</h3>
+          <h2>Программа помогла? Поддержите проект</h2>
           <p>Программа бесплатная, её делает один человек в свободное время, чтобы люди не потеряли свои фото. Любая сумма помогает развивать её дальше.</p>
           <div class="row actions"><a class="btn primary" id="done-donate" href="https://dalink.to/davronsvv" target="_blank" rel="noopener">${icon('heart')}Поддержать проект</a>
             <a class="btn" id="done-telegram" href="https://t.me/davronsv" target="_blank" rel="noopener">${icon('send')}Telegram-канал</a>
             <a class="btn" id="done-yadisk" href="https://github.com/PXSYS13/yadisk_backup" target="_blank" rel="noopener">${icon('hdd')}«Яндекс БК» для Яндекс Диска</a></div></div></section></div>
-        <div class="card mt"><h3>Что дальше</h3>
+        <div class="card mt"><h2>Что дальше</h2>
           <div class="links-grid">
             <a href="#/process"><span class="ico">${icon('sliders')}</span><span>Обработка: JPG-копии, дубли, раскладка</span></a>
             <a href="#/yandex"><span class="ico">${icon('cloud')}</span><span>Залить копию в Яндекс Диск</span></a>
             <a href="#/help"><span class="ico">${icon('help')}</span><span>Помощь и частые вопросы</span></a>
           </div>
-          <p class="tiny" style="margin-top:16px">Проверьте папку: откройте несколько фото и видео из разных лет. Пока не убедились, что всё на месте, ничего не удаляйте из iCloud.</p></div>`;
+          <p class="tiny mt-md">Проверьте папку: откройте несколько фото и видео из разных лет. Пока не убедились, что всё на месте, ничего не удаляйте из iCloud.</p></div>`;
     },
     update(s) {
       const lib = s.library || {};
@@ -30,7 +30,7 @@
       const photos = (lib.photos || 0) + (lib.live || 0);
       const complete = lib.total && (lib.downloaded || 0) >= lib.total && !lib.failed;
       const title = complete ? `Готово: спасено ${fmt.num(photos)} ${fmt.plural(photos, 'фото', 'фото', 'фото')} и ${fmt.num(lib.videos || 0)} ${fmt.plural(lib.videos || 0, 'видео', 'видео', 'видео')} (${fmt.bytes(lib.bytes_done || 0)})`
-        : `Скачано ${fmt.num(lib.downloaded || 0)} из ${fmt.files(lib.total || 0)}`;
+        : `Скачано ${fmt.num(lib.downloaded || 0)} из ${fmt.filesOf(lib.total || 0)}`;
       const sub = complete ? 'Вся медиатека iCloud Фото лежит на вашем компьютере: оригиналы, Live Photos и видео. В iCloud ничего не изменилось.'
         : lib.failed ? `Не скачались ${fmt.files(lib.failed)}. Вернитесь на главную и нажмите «Повторить».` : 'Скачивание ещё не закончено — продолжите его на главной.';
       App.html(byId('done-hero'), `<div class="hero-top"><span class="pill ${complete ? 'ok' : 'wait'}"><span class="pdot"></span>${complete ? 'Готово' : 'Не всё скачано'}</span></div>
