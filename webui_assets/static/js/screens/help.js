@@ -38,17 +38,21 @@
       const I = App.icon;
       const head = (ic, cls, title, sub) => `<div class="card-head"><span class="icon-box ${cls}">${I(ic)}</span>
         <div class="grow"><h2>${title}</h2>${sub ? `<span class="tiny">${sub}</span>` : ''}</div></div>`;
-      el.innerHTML = `<div class="page-head"><h1>Помощь</h1><p>Ответы на частые вопросы и как получить помощь.</p></div>
+      el.innerHTML = `<div class="page-head"><h1>Помощь</h1><p>Ответы на частые вопросы и как получить помощь. Все шаги по порядку —
+          в <a id="help-guide" href="https://github.com/PXSYS13/icloud_backup/blob/main/INSTRUCTION.md" target="_blank" rel="noopener">пошаговой инструкции</a>.</p></div>
         <div class="stack">
         <div class="card faq">${head('help', '', 'Частые вопросы', '')}
           ${FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><div class="body"><p>${esc(a)}</p></div></details>`).join('')}</div>
         <div class="card">${head('lifebuoy', 'ok', 'Нужна помощь', '')}
-          <p class="lead">Если что-то не работает — скачайте отчёт и пришлите его в Telegram. В отчёте журналы и состояние программы, но нет паролей, кодов и ключей.</p>
+          <p class="lead">Если что-то не работает — скачайте отчёт и пришлите его в Telegram или приложите к сообщению об ошибке на GitHub. В отчёте журналы и состояние программы, но нет паролей, кодов и ключей. Сообщения на GitHub видят все: путь к папке и имена файлов из отчёта тоже.</p>
           <div class="row">
             <a class="btn primary" href="/api/logs/bundle">${I('download')}Скачать отчёт для поддержки</a>
             <a class="btn" id="help-telegram" href="https://t.me/davronsv" target="_blank" rel="noopener">${I('send')}Написать в Telegram</a>
-            <a class="btn" id="help-github" href="https://github.com/PXSYS13/icloud_backup/issues" target="_blank" rel="noopener">${I('code')}Вопрос на GitHub</a>
+            <a class="btn" id="help-bug" href="https://github.com/PXSYS13/icloud_backup/issues/new?template=bug-report.yml" target="_blank" rel="noopener">${I('alert')}Сообщить об ошибке</a>
           </div></div>
+        <div class="card">${head('send', '', 'Тестовый режим', 'Программа только что вышла')}
+          <p class="lead">Расскажите, как прошло скачивание, — даже если всё получилось. Сошлось ли число фото и видео с айфоном, что было непонятно. Пять минут, нужен аккаунт GitHub; без него напишите в Telegram.</p>
+          <div class="row"><a class="btn" id="help-feedback" href="https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml" target="_blank" rel="noopener">${I('send')}Рассказать, как прошло</a></div></div>
         <div class="card"><details id="help-logs-box"><summary>Журналы программы — для поддержки</summary><div class="body">
           <div class="row mb-sm"><select id="help-log-select" class="log-select" aria-label="Файл журнала"></select>
             <button data-action="help-log-show">Показать</button></div>
@@ -66,7 +70,9 @@
     update(s) {
       const links = s.links || {};
       if (links.telegram) byId('help-telegram').href = links.telegram;
-      if (links.github) byId('help-github').href = links.github + '/issues';
+      if (links.bug_report) byId('help-bug').href = links.bug_report;
+      if (links.feedback) byId('help-feedback').href = links.feedback;
+      if (links.guide) byId('help-guide').href = links.guide;
     },
   };
 

@@ -70,4 +70,4 @@
 
 ## Что сообщить, если что-то не так
 
-Экран, что нажали, что ожидали и что увидели, плюс отчёт для поддержки из «Помощи». Для ошибок Apple полезна последняя строка `WARNING | webui.engine` из `logs/webui.log`.
+Экран, что нажали, что ожидали и что увидели, плюс отчёт для поддержки из «Помощи». Тестировщики присылают это через формы на GitHub: [«Отчёт о тестировании»](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml) и [«Сообщить об ошибке»](https://github.com/PXSYS13/icloud_backup/issues/new?template=bug-report.yml). Для ошибок Apple полезна последняя строка `WARNING | webui.engine` из `logs/webui.log`.

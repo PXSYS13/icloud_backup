@@ -7,10 +7,11 @@
 Для тех, кому нечем оплатить iCloud+, у кого хранилище переполнено<br>и кто не хочет скачивать фото с iCloud.com по 1000 штук за раз.
 
 [![Скачать программу](https://img.shields.io/badge/Скачать_программу-бесплатно,_ZIP-2ea44f?style=for-the-badge)](https://github.com/PXSYS13/icloud_backup/archive/refs/heads/main.zip)
-[![Как начать](https://img.shields.io/badge/Как_начать-для_новичков-5b5bd6?style=for-the-badge)](#как-начать)
+[![Инструкция](https://img.shields.io/badge/Инструкция-для_новичков-5b5bd6?style=for-the-badge)](https://github.com/PXSYS13/icloud_backup/blob/main/INSTRUCTION.md)
 [![Поддержать](https://img.shields.io/badge/Поддержать-любой_суммой-ff375f?style=for-the-badge)](https://dalink.to/davronsvv)
 
-![Версия](https://img.shields.io/badge/версия-1.0.0-blue)
+![Версия](https://img.shields.io/badge/версия-1.0.1-blue)
+[![Тестовый режим](https://img.shields.io/badge/тестовый_режим-нужны_отзывы-orange)](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml)
 ![Windows · macOS · Linux](https://img.shields.io/badge/Windows_·_macOS_·_Linux-555)
 [![Telegram](https://img.shields.io/badge/Telegram-@davronsv-2CA5E0?logo=telegram&logoColor=white)](https://t.me/davronsv)
 [![YouTube](https://img.shields.io/badge/YouTube-канал_автора-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/@davronsv)
@@ -19,6 +20,9 @@
 </div>
 
 **Если у тебя Яндекс Диск — смотри [«Яндекс БК»](https://github.com/PXSYS13/yadisk_backup).** Это такая же программа, только для Яндекс Диска.
+
+> [!IMPORTANT]
+> **Программа в тестовом режиме.** Она только что вышла, и на настоящих медиатеках её проверили немногие. Если попробовали — [расскажите, как прошло](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml): дошли ли до конца, сошлось ли число фото и видео с айфоном, что было непонятно. Пять минут — и следующим людям будет проще. Нет аккаунта на GitHub — напишите в [Telegram](https://t.me/davronsv).
 
 <p align="center"><img src="docs/screenshots/home-dark.webp" alt="Главный экран: идёт скачивание — сколько скачано, скорость, сколько осталось, последние файлы" width="900"></p>
 
@@ -71,6 +75,8 @@
 6. **Не закрывайте чёрное окно программы** — пока оно открыто, программа работает. Браузер закрывать можно.
 
 Что нужно: Windows 10 или 11 (основная система), macOS или Linux; интернет; свободное место на диске примерно по размеру медиатеки.
+
+Каждый шаг с подсказками и что делать, если что-то пошло не так, — в [пошаговой инструкции](https://github.com/PXSYS13/icloud_backup/blob/main/INSTRUCTION.md).
 
 <p align="center"><img src="docs/screenshots/home-setup.webp" alt="Первый экран: три шага — подготовить айфон, войти в Apple ID, нажать «Скачать»" width="900"></p>
 
@@ -216,7 +222,7 @@ HEIC — формат, в котором айфон снимает фото. Win
 <details>
 <summary><b>Что-то не работает — как попросить помощи?</b></summary>
 
-Экран «Помощь» → «Скачать отчёт для поддержки». В отчёте журналы программы и её состояние, но нет пароля, кодов подтверждения и ключей доступа. Пришлите его в [Telegram](https://t.me/davronsv) или приложите к [вопросу на GitHub](https://github.com/PXSYS13/icloud_backup/issues/new).
+Экран «Помощь» → «Скачать отчёт для поддержки». В отчёте журналы программы и её состояние, но нет пароля, кодов подтверждения и ключей доступа. Пришлите его в [Telegram](https://t.me/davronsv) или приложите к [сообщению об ошибке на GitHub](https://github.com/PXSYS13/icloud_backup/issues/new?template=bug-report.yml). Сообщения на GitHub видят все: в отчёте есть путь к папке с фото и имена файлов. Не хотите показывать это всем — пришлите отчёт в Telegram.
 
 Чёрное окно сразу закрылось или пишет «Could not install uv automatically» — проверьте интернет и запустите снова. Не помогло — установите uv [по инструкции](https://docs.astral.sh/uv/getting-started/installation/), закройте все чёрные окна и запустите `webui.bat` ещё раз.
 </details>
@@ -242,13 +248,15 @@ HEIC — формат, в котором айфон снимает фото. Win
   <a href="https://dalink.to/davronsvv"><img src="https://img.shields.io/badge/Поддержать_проект-любой_суммой-ff375f?style=for-the-badge" alt="Поддержать проект"></a>
 </p>
 
-Помочь можно и без денег: поставьте звезду этому репозиторию, расскажите о программе тем, у кого переполнен iCloud, или сообщите об ошибке.
+Помочь можно и без денег: поставьте звезду этому репозиторию, расскажите о программе тем, у кого переполнен iCloud, [пришлите отчёт о тестировании](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml) или [сообщите об ошибке](https://github.com/PXSYS13/icloud_backup/issues/new?template=bug-report.yml).
 
 ## Сообщество
 
 - [Telegram-канал @davronsv](https://t.me/davronsv) — новости, ответы на вопросы.
 - [YouTube-канал автора](https://www.youtube.com/@davronsv).
-- [Вопросы и ошибки на GitHub](https://github.com/PXSYS13/icloud_backup/issues) и [обсуждения](https://github.com/PXSYS13/icloud_backup/discussions).
+- [Пошаговая инструкция](https://github.com/PXSYS13/icloud_backup/blob/main/INSTRUCTION.md).
+- [Отчёт о тестировании](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml) и [сообщение об ошибке](https://github.com/PXSYS13/icloud_backup/issues/new?template=bug-report.yml) на GitHub.
+- [Обсуждения](https://github.com/PXSYS13/icloud_backup/discussions) — вопросы и идеи.
 
 Автор — Davron: [GitHub](https://github.com/PXSYS13) · [Telegram](https://t.me/davronsv) · [YouTube](https://www.youtube.com/@davronsv) · [поддержать](https://dalink.to/davronsvv).
 

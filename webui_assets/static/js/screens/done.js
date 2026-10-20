@@ -16,6 +16,9 @@
           <div class="row actions"><a class="btn primary" id="done-donate" href="https://dalink.to/davronsvv" target="_blank" rel="noopener">${icon('heart')}Поддержать проект</a>
             <a class="btn" id="done-telegram" href="https://t.me/davronsv" target="_blank" rel="noopener">${icon('send')}Telegram-канал</a>
             <a class="btn" id="done-yadisk" href="https://github.com/PXSYS13/yadisk_backup" target="_blank" rel="noopener">${icon('hdd')}«Яндекс БК» для Яндекс Диска</a></div></div></section></div>
+        <div class="card mt"><h2>Расскажите, как прошло</h2>
+          <p class="lead">Программа в тестовом режиме. Напишите, сошлось ли число фото и видео с айфоном и что было непонятно, — это поможет найти ошибки. Пять минут, нужен аккаунт GitHub; без него напишите в Telegram.</p>
+          <div class="row"><a class="btn" id="done-feedback" href="https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml" target="_blank" rel="noopener">${icon('send')}Рассказать, как прошло</a></div></div>
         <div class="card mt"><h2>Что дальше</h2>
           <div class="links-grid">
             <a href="#/process"><span class="ico">${icon('sliders')}</span><span>Обработка: JPG-копии, дубли, раскладка</span></a>
@@ -46,6 +49,7 @@
       if (links.donation) byId('done-donate').href = links.donation;
       if (links.telegram) byId('done-telegram').href = links.telegram;
       if (links.yadisk_bk) byId('done-yadisk').href = links.yadisk_bk;
+      if (links.feedback) byId('done-feedback').href = links.feedback;
     },
   };
 })();

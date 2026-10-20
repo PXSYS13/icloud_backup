@@ -11,8 +11,11 @@ from fastapi import APIRouter
 
 from utils import (
     APP_VERSION,
+    BUG_REPORT_URL,
     DONATION_URL,
+    FEEDBACK_URL,
     GITHUB_URL,
+    GUIDE_URL,
     ICLOUDPD_URL,
     TELEGRAM_CHANNEL,
     TELEGRAM_HANDLE,
@@ -44,7 +47,7 @@ def api_status():
         "links": {
             "donation": DONATION_URL, "telegram": TELEGRAM_CHANNEL, "telegram_handle": TELEGRAM_HANDLE,
             "youtube": YOUTUBE_URL, "github": GITHUB_URL, "yadisk_bk": YADISK_BK_URL, "icloudpd": ICLOUDPD_URL,
-            "yandex_root": YANDEX_ROOT,
+            "yandex_root": YANDEX_ROOT, "guide": GUIDE_URL, "feedback": FEEDBACK_URL, "bug_report": BUG_REPORT_URL,
         },
         "config": config.public_config(cfg),
         "account": account_view(),

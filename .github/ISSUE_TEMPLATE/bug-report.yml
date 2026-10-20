@@ -1,0 +1,87 @@
+name: Сообщить об ошибке
+description: Программа делает не то, что должна, показывает ошибку или зависла.
+title: "Ошибка: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Сначала загляните в таблицу [«Если что-то пошло не так»](https://github.com/PXSYS13/icloud_backup/blob/main/INSTRUCTION.md#если-что-то-пошло-не-так): там частые сообщения программы и что с ними делать.
+
+        **Это сообщение увидят все.** Не пишите сюда пароль, коды подтверждения и полный Apple ID и не прикладывайте личные фото.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: Что случилось
+      description: Что вы увидели. Текст сообщения программы лучше скопировать целиком. Скриншот можно вставить сюда.
+      placeholder: |
+        После ввода кода пишет «Apple не даёт доступ к фото через веб (ACCESS_DENIED)», хотя оба переключателя на айфоне включены.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Что делали перед этим
+      description: По шагам — на каком экране были и что нажимали.
+      placeholder: |
+        1. Включить «Доступ к данным iCloud в интернете», подождать 10 минут.
+        2. Войти в Apple ID, ввести код.
+        3. Нажать «Проверить медиатеку».
+    validations:
+      required: true
+
+  - type: dropdown
+    id: repeat
+    attributes:
+      label: Повторяется?
+      options:
+        - Каждый раз
+        - Иногда
+        - Было один раз
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Система на компьютере
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS
+        - Linux
+        - Другая
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Версия программы
+      description: Написана в меню слева под названием «iCloud БК», например «версия 1.0.1».
+      placeholder: "1.0.1"
+
+  - type: input
+    id: ios
+    attributes:
+      label: Версия iOS на айфоне
+      description: На айфоне — «Настройки» → «Основные» → «Об этом устройстве».
+      placeholder: "iOS 26.4"
+
+  - type: textarea
+    id: report
+    attributes:
+      label: Отчёт для поддержки
+      description: |
+        В программе «Помощь» → «Скачать отчёт для поддержки». Перетащите ZIP-файл в это поле.
+        В отчёте нет пароля, кодов и ключей, Apple ID записан не полностью. Но в нём есть путь к папке с фото (в нём может быть имя пользователя компьютера) и имена файлов вроде IMG_0001.HEIC. Не хотите показывать это всем — пришлите отчёт в Telegram @davronsv.
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Проверьте перед отправкой
+      options:
+        - label: Здесь нет пароля, кодов подтверждения и полного Apple ID
+          required: true
