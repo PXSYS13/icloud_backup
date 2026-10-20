@@ -45,8 +45,8 @@ CREATE TABLE IF NOT EXISTS assets (
 );
 CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
 CREATE INDEX IF NOT EXISTS idx_assets_md5 ON assets(md5);
-CREATE INDEX IF NOT EXISTS idx_assets_local ON assets(local_path COLLATE NOCASE);
-CREATE INDEX IF NOT EXISTS idx_assets_live_local ON assets(live_local_path COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS idx_assets_local_nocase ON assets(local_path COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS idx_assets_live_local_nocase ON assets(live_local_path COLLATE NOCASE);
 CREATE INDEX IF NOT EXISTS idx_assets_downloaded_at ON assets(downloaded_at);
 -- Служебные записи: когда собирали список, под какой аккаунт
 CREATE TABLE IF NOT EXISTS meta (
@@ -60,6 +60,8 @@ STATUSES = ("pending", "downloaded", "failed", "skipped")
 
 # Маркер в колонке error: файл признан дублем и перенесён в _duplicates (обратимо)
 DUPLICATE_MARKER = "duplicate | "
+# Маркер в колонке error: файла больше нет в iCloud (удалён) — снят с очереди, в итогах не считается
+GONE_MARKER = "gone | "
 
 
 class State:
@@ -142,16 +144,41 @@ class State:
                     live_filename = excluded.live_filename,
                     seen_at = excluded.seen_at,
                     checksum = excluded.checksum,
+                    error = CASE
+                        WHEN assets.status = 'skipped' AND assets.error LIKE ? THEN NULL
+                        ELSE assets.error
+                    END,
                     status = CASE
                         WHEN assets.status = 'downloaded'
                              AND excluded.checksum IS NOT NULL AND assets.checksum IS NOT NULL
                              AND excluded.checksum <> assets.checksum
                         THEN 'pending'
+                        WHEN assets.status = 'skipped' AND assets.error LIKE ? THEN 'pending'
                         ELSE assets.status
                     END
                 """,
-                rows,
+                [(*r, GONE_MARKER + "%", GONE_MARKER + "%") for r in rows],
             )
+
+    def retire_unseen(self, seen_at: str) -> int:
+        """Список пройден целиком: файлы в очереди, которых в нём не было, удалены в iCloud."""
+        with self._tx() as conn:
+            cur = conn.execute(
+                "UPDATE assets SET status='skipped', error=? WHERE status='pending' "
+                "AND (seen_at IS NULL OR seen_at < ?)",
+                (GONE_MARKER + "нет в iCloud", seen_at))
+            return cur.rowcount
+
+    def retire_pending_not_in(self, seen_ids: set[str]) -> int:
+        """То же по набору идентификаторов, которые встретились при проходе скачивания."""
+        missing = [r["id"] for r in self._conn().execute("SELECT id FROM assets WHERE status='pending'")
+                   if r["id"] not in seen_ids]
+        if not missing:
+            return 0
+        with self._tx() as conn:
+            conn.executemany("UPDATE assets SET status='skipped', error=? WHERE id=? AND status='pending'",
+                             [(GONE_MARKER + "нет в iCloud", i) for i in missing])
+        return len(missing)
 
     def mark_downloaded(self, asset_id: str, local_path: str, live_local_path: str | None,
                         md5: str | None) -> None:
@@ -255,13 +282,16 @@ class State:
             "bytes_total": 0, "bytes_done": 0, "bytes_pending": 0, "bytes_failed": 0,
             "photos": 0, "videos": 0, "live": 0,
             "bytes_photos": 0, "bytes_videos": 0, "bytes_live": 0,
-            "years": [], "duplicates": 0,
+            "years": [], "duplicates": 0, "gone": 0,
             "listed_at": self.get_meta("listed_at"),
         }
+        # Удалённые в iCloud файлы (gone) в медиатеке не считаются — иначе 100% не набрать
+        gone_filter = "NOT (status = 'skipped' AND COALESCE(error,'') LIKE ?)"
+        gone_arg = (GONE_MARKER + "%",)
         for r in conn.execute(
             "SELECT status, kind, COUNT(*) AS n, "
             "COALESCE(SUM(COALESCE(size,0) + COALESCE(live_size,0)),0) AS b FROM assets "
-            "GROUP BY status, kind"):
+            f"WHERE {gone_filter} GROUP BY status, kind", gone_arg):
             st, kind, n, b = r["status"], r["kind"], int(r["n"]), int(r["b"])
             out[st] = out.get(st, 0) + n
             out["total"] += n
@@ -279,13 +309,16 @@ class State:
         years = conn.execute(
             "SELECT CAST(strftime('%Y', created_ts, 'unixepoch') AS INTEGER) AS y, "
             "COUNT(*) AS n, COALESCE(SUM(COALESCE(size,0) + COALESCE(live_size,0)),0) AS b, "
-            "SUM(status='downloaded') AS done FROM assets WHERE created_ts IS NOT NULL "
-            "GROUP BY y ORDER BY y DESC").fetchall()
+            f"SUM(status='downloaded') AS done FROM assets WHERE created_ts IS NOT NULL AND {gone_filter} "
+            "GROUP BY y ORDER BY y DESC", gone_arg).fetchall()
         out["years"] = [{"year": r["y"], "count": int(r["n"]), "bytes": int(r["b"]),
                          "done": int(r["done"] or 0)} for r in years if r["y"]]
         dup = conn.execute("SELECT COUNT(*) AS n FROM assets WHERE error LIKE ?",
                            (DUPLICATE_MARKER + "%",)).fetchone()
         out["duplicates"] = int(dup["n"]) if dup else 0
+        gone = conn.execute("SELECT COUNT(*) AS n FROM assets WHERE status='skipped' AND error LIKE ?",
+                            gone_arg).fetchone()
+        out["gone"] = int(gone["n"]) if gone else 0
         return out
 
     def last_downloaded_at(self) -> float | None:
@@ -356,7 +389,10 @@ def plan_local_paths(state: State, asset: sqlite3.Row, download_dir: str, by_mon
     live_name = sanitize_component(asset["live_filename"]) if asset["live_filename"] else None
 
     current = asset["local_path"]
-    if current and _under(current, root):
+    # Назначенный путь внутри папки не меняем. Исключение: после «JPG-копий» путь ведёт на
+    # .JPG, а в iCloud появилась новая версия HEIC — писать байты HEIC в .JPG нельзя
+    same_ext = bool(current) and os.path.splitext(current)[1].lower() == os.path.splitext(name)[1].lower()
+    if current and _under(current, root) and same_ext:
         return current, asset["live_local_path"]
 
     local = os.path.normpath(os.path.join(folder, name))

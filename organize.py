@@ -19,6 +19,7 @@ import shutil
 import sys
 import time
 
+from dedupe import jpg_twin
 from state import DUPLICATE_MARKER, State, month_folder
 from utils import DIR_DUP, DIR_HEIC_ORIGINALS, ensure_utf8_stdio, is_media, is_safe_dir, to_long_path
 
@@ -29,6 +30,7 @@ DATE_REGEXES = [
     re.compile(r"(19\d{2}|20\d{2})[-_.](\d{2})[-_.](\d{2})"),
     re.compile(r"(19\d{2}|20\d{2})(\d{2})(\d{2})"),
 ]
+OWN_DIR_RE = re.compile(r"^(19|20)\d{2}(-\d{2})?$")
 
 
 def unique_path(dst: str) -> str:
@@ -56,12 +58,21 @@ def _same(a: str, b: str) -> bool:
     return os.path.normcase(os.path.abspath(a)) == os.path.normcase(os.path.abspath(b))
 
 
+def is_own_folder_name(name: str) -> bool:
+    """Папка, которую создаёт сама раскладка: «2023», «2023-07» или «без даты»."""
+    return bool(OWN_DIR_RE.match(name)) or name == "без даты"
+
+
 def remove_empty_dirs(root: str, skip: set[str] = SKIP_DIRS) -> int:
+    """Убирает опустевшие папки раскладки. Чужие папки (пусть и пустые) не трогает:
+    человек может указать папку, где лежит что-то ещё."""
     cleaned = 0
     for dp, dirs, fns in os.walk(root, topdown=False):
         rel = os.path.relpath(dp, root)
-        first = rel.split(os.sep)[0] if rel != "." else ""
-        if first in skip or dp == root:
+        if rel == ".":
+            continue
+        parts = rel.split(os.sep)
+        if parts[0] in skip or not all(is_own_folder_name(p) for p in parts):
             continue
         try:
             if not os.listdir(dp):
@@ -99,6 +110,10 @@ def relayout(state: State, download_dir: str, by_month: bool, progress_cb=None, 
                 shutil.move(to_long_path(src), to_long_path(dst))
                 state.update_local_path(row["id"], **{column: dst})
                 out["moved"] += 1
+                # JPG-копия (режим «Оба») едет вместе с HEIC
+                twin = jpg_twin(src)
+                if twin:
+                    shutil.move(to_long_path(twin), to_long_path(unique_path(os.path.join(folder, os.path.basename(twin)))))
             except OSError:
                 out["errors"] += 1
         if progress_cb is not None and (n % 20 == 0 or n == len(rows)):

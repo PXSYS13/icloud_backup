@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import re
 import threading
 import time
 from collections import deque
@@ -42,6 +43,14 @@ LISTING_FRESH_SEC = 6 * 3600
 # Столько раз за запуск пересобираем список из-за устаревших ссылок на файлы
 MAX_RELISTS = 6
 SPEED_WINDOW_SEC = 30
+
+
+_URL_QUERY_RE = re.compile(r"\?[^\s'\")\]]*")
+
+
+def scrub(text: str) -> str:
+    """Убирает из текста хвосты адресов после «?»: в ссылках Apple на файлы лежат подписанные токены."""
+    return _URL_QUERY_RE.sub("?…", text or "")
 
 
 class _PauseRequested(Exception):
@@ -256,7 +265,7 @@ class Pipeline:
             self._fail_engine(e)
         except Exception as e:  # noqa: BLE001
             log.exception("рабочий поток упал")
-            self.error = {"kind": "other", "text": f"Неожиданная ошибка: {type(e).__name__}: {e}"}
+            self.error = {"kind": "other", "text": f"Неожиданная ошибка: {type(e).__name__}: {scrub(str(e))[:300]}"}
             self._event("err", self.error["text"])
             self._finish("error")
         finally:
@@ -271,7 +280,7 @@ class Pipeline:
             st = self.deps["state"].get_stats() if self.deps.get("state") else {}
             failed = st.get("failed", 0)
             if self.mode == "scan":
-                self._event("ok", f"Список получен: {files_text(st.get('total', 0))}")
+                pass  # «Список получен» уже написал _scan_pass
             elif failed:
                 self._event("ok", f"Готово. Не скачались: {files_text(failed)} — их можно повторить")
             else:
@@ -364,7 +373,12 @@ class Pipeline:
         if batch:
             state.upsert_batch(batch, seen_at)
         state.set_meta("listed_at", seen_at)
+        # Список прошли целиком: файлы, которых в нём больше нет, удалены в iCloud —
+        # снимаем их с очереди, иначе «Осталось N» висело бы вечно
+        gone = state.retire_unseen(seen_at)
         self._event("ok", f"Список получен: {files_text(found)}")
+        if gone:
+            self._event("info", f"Больше нет в iCloud (удалены): {files_text(gone)} — сняты с очереди")
         if self.mode != "scan":
             self.state_name = "downloading"
 
@@ -379,10 +393,12 @@ class Pipeline:
         self._url_rejects = {}
         relists = 0
         while True:
+            seen_ids: set[str] = set()
             try:
                 for item in self._iter_with_retry():
                     self._check_stop()
                     self._wait_if_paused()
+                    seen_ids.add(item.id)
                     row = state.get(item.id)
                     if row is None:
                         state.upsert_batch([item.as_row()])
@@ -390,6 +406,9 @@ class Pipeline:
                     if row["status"] in ("downloaded", "skipped", "failed"):
                         continue
                     self._download_item(item, row, state, cfg)
+                gone = state.retire_pending_not_in(seen_ids)
+                if gone:
+                    self._event("info", f"Больше нет в iCloud (удалены): {files_text(gone)} — сняты с очереди")
                 return
             except _RelistNeeded:
                 # Ссылки Apple живут недолго: после долгой паузы или большого видео они
@@ -438,12 +457,14 @@ class Pipeline:
             self._check_stop()
             self._wait_if_paused()
             start = file_size_safe(part) or 0
-            if size and start >= size:
+            if size and start > size:
                 remove_quiet(part)
                 start = 0
             self.current = {"name": name, "size": size or 0, "got": start, "kind": item.kind}
             try:
-                hasher = self._stream_to_part(engine, url, part, start)
+                # .part уже целиком скачан (остановили между последним байтом и переименованием):
+                # не качаем второй раз, только проверяем и переименовываем
+                hasher = None if size and start == size else self._stream_to_part(engine, url, part, start)
             except _PauseRequested:
                 self._wait_if_paused()
                 continue
@@ -483,7 +504,7 @@ class Pipeline:
                 self._sleep_backoff(attempt - 1, "Связь оборвалась")
                 continue
             except Exception as e:  # noqa: BLE001 — requests и прочие обрывы потока
-                log.warning("скачивание %s: %s: %s", name, type(e).__name__, str(e)[:200])
+                log.warning("скачивание %s: %s: %s", name, type(e).__name__, scrub(str(e))[:200])
                 attempt += 1
                 if attempt >= MAX_ITEM_ATTEMPTS:
                     state.mark_failed(item.id, f"network | {type(e).__name__}")

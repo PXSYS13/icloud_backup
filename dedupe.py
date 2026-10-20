@@ -19,7 +19,17 @@ import sys
 from collections import defaultdict
 
 from state import DUPLICATE_MARKER, State
-from utils import DIR_DUP, DIR_HEIC_ORIGINALS, compute_md5, ensure_utf8_stdio, is_media, is_safe_dir, ru_bytes, to_long_path
+from utils import (
+    DIR_DUP,
+    DIR_HEIC_ORIGINALS,
+    compute_md5,
+    ensure_utf8_stdio,
+    is_heic,
+    is_media,
+    is_safe_dir,
+    ru_bytes,
+    to_long_path,
+)
 
 SKIP_DIRS = {DIR_DUP, DIR_HEIC_ORIGINALS}
 SKIP_SUFFIXES = (".part", ".tmp", ".db", ".db-wal", ".db-shm", ".log")
@@ -44,6 +54,15 @@ def _inside(path: str, root: str) -> bool:
         return p.startswith(r + os.sep)
     except ValueError:
         return False
+
+
+def jpg_twin(path: str) -> str | None:
+    """JPG-копия рядом с HEIC (режим «Оба»), если она есть."""
+    if not is_heic(path):
+        return None
+    from heic_convert import jpg_path_for
+    twin = jpg_path_for(path)
+    return twin if os.path.isfile(to_long_path(twin)) else None
 
 
 def _move(src: str, root: str, dup_root: str) -> str:
@@ -80,6 +99,10 @@ def move_duplicates(state: State, download_dir: str, progress_cb=None, stop_even
                 live = dup["live_local_path"]
                 if live and _inside(live, root) and os.path.isfile(to_long_path(live)):
                     new_live = _move(live, root, dup_root)
+                # JPG-копия (режим «Оба») едет вместе с HEIC, иначе осталась бы сиротой
+                twin = jpg_twin(src)
+                if twin:
+                    _move(twin, root, dup_root)
                 state.move_to_duplicates(dup["id"], new_main, keep["id"])
                 if new_live:
                     state.update_local_path(dup["id"], live_local_path=new_live)

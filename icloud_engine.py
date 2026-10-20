@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
 
-from utils import atomic_write_text
+from utils import IS_WINDOWS, atomic_write_text
 
 log = logging.getLogger("webui.engine")
 
@@ -136,8 +136,14 @@ class ICloudPdEngine:
             self._icloud = None
             self._two_step_device = None
             self.session_dir.mkdir(parents=True, exist_ok=True)
-            # Пароль живёт только внутри этого вызова: icloudpd получает его через
-            # функцию и не сохраняет (keyring не используем)
+            if not IS_WINDOWS:
+                try:
+                    os.chmod(self.session_dir, 0o700)  # файлы сессии — только владельцу
+                except OSError:
+                    pass
+            # Пароль отдаём icloudpd через функцию и на диск не пишем (keyring не используем).
+            # В памяти процесса он остаётся внутри фильтра журнала icloudpd, который
+            # прячет его из своих сообщений, — это код библиотеки
             holder = {"password": password}
 
             def provider() -> str | None:
@@ -443,4 +449,4 @@ def session_files_present(session_dir: Path) -> bool:
 
 
 __all__ = ["Engine", "EngineError", "ICloudPdEngine", "MediaItem", "Stream", "make_engine",
-           "session_files_present", "os"]
+           "session_files_present"]

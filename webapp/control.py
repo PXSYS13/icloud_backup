@@ -168,6 +168,8 @@ def api_download_stop():
 def api_retry_failed():
     """«Повторить для N файлов»: не скачавшиеся — снова в очередь, и сразу качать."""
     n = runtime.get_state().reset_failed_to_pending()
+    if n == 0:
+        return {"ok": False, "msg": "Нет файлов, которые не скачались", "count": 0}
     if runtime.pipeline.is_running():
         return {"ok": True, "msg": f"Вернул в очередь {n} файлов — они скачаются в этом же запуске или в следующем",
                 "count": n}
