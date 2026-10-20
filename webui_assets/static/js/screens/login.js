@@ -10,6 +10,7 @@
   let errorField = ''; // какое поле не приняли: apple_id | password | code
   let appleId = '';    // введённый Apple ID переживает перерисовку формы после ошибки
   let busy = false;
+  let restarted = false; // нажали «Ввести Apple ID заново»: сервер ещё ждёт код, но поле кода не возвращаем
 
   function wanted(s) {
     const st = ((s || {}).account || {}).state;
@@ -88,19 +89,21 @@
       error = '';
       errorField = '';
       busy = false;
-      mode = wanted(App.state.status);
-      render(App.state.status);
+      restarted = false;
+      // После перезагрузки статус ещё не получен: форму нарисует update() по первому ответу,
+      // иначе мелькнула бы форма с паролем, хотя сервер ждёт код
+      mode = App.state.status ? wanted(App.state.status) : null;
+      if (mode) render(App.state.status);
     },
     update(s) {
       const w = wanted(s);
-      if (w !== mode && !busy) {
-        // Состояние сменилось снаружи (сессия истекла, вошли в другой вкладке)
-        if (mode === 'creds' && w === 'code') return; // ответ на наш запрос придёт сам
-        mode = w;
-        error = '';
-        errorField = '';
-        render(s);
-      }
+      if (w === mode || busy) return;
+      if (w === 'code' && restarted) return; // пользователь сам вернулся к Apple ID и паролю
+      // Первый статус после перезагрузки или состояние сменилось снаружи (сессия истекла, вошли в другой вкладке)
+      mode = w;
+      error = '';
+      errorField = '';
+      render(s);
     },
   };
 
@@ -119,6 +122,7 @@
       fail(res.error || 'Не получилось войти', 'password');
       return;
     }
+    restarted = false;
     const st = res.data.state;
     mode = st === 'ok' ? 'ok' : 'code';
     render(App.state.status);
@@ -146,5 +150,5 @@
     App.go('#/home');
   });
 
-  App.action('login-restart', () => { mode = 'creds'; error = ''; errorField = ''; render(App.state.status); });
+  App.action('login-restart', () => { restarted = true; mode = 'creds'; error = ''; errorField = ''; render(App.state.status); });
 })();

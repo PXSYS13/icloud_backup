@@ -15,7 +15,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 APP_NAME = "iCloud БК"
 
 # Символы, запрещённые в именах файлов на Windows. Слеши тоже: имя файла в iCloud
