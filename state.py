@@ -16,7 +16,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from datetime import datetime, timezone
 
-from utils import file_size_safe, path_key, sanitize_component, short_id, sqlite_tx, to_long_path, with_suffix_before_ext
+from utils import file_size_safe, sanitize_component, short_id, sqlite_tx, to_long_path, with_suffix_before_ext
 
 
 def _utc_now() -> str:
@@ -45,7 +45,9 @@ CREATE TABLE IF NOT EXISTS assets (
 );
 CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
 CREATE INDEX IF NOT EXISTS idx_assets_md5 ON assets(md5);
-CREATE INDEX IF NOT EXISTS idx_assets_local ON assets(local_path);
+CREATE INDEX IF NOT EXISTS idx_assets_local ON assets(local_path COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS idx_assets_live_local ON assets(live_local_path COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS idx_assets_downloaded_at ON assets(downloaded_at);
 -- Служебные записи: когда собирали список, под какой аккаунт
 CREATE TABLE IF NOT EXISTS meta (
     key TEXT PRIMARY KEY,
@@ -236,15 +238,14 @@ class State:
                  "at": _utc_ts(r["downloaded_at"])} for r in rows]
 
     def is_path_taken(self, local_path: str, except_id: str) -> bool:
-        key = path_key(local_path)
-        rows = self._conn().execute(
-            "SELECT id, local_path, live_local_path FROM assets WHERE id <> ? AND "
-            "(local_path IS NOT NULL OR live_local_path IS NOT NULL)", (except_id,))
-        for r in rows:
-            for p in (r["local_path"], r["live_local_path"]):
-                if p and path_key(p) == key:
-                    return True
-        return False
+        """Путь уже назначен другому файлу. Сравнение без учёта регистра по индексу:
+        полный перебор строк на медиатеке в десятки тысяч файлов занимал бы минуты."""
+        norm = os.path.normpath(local_path)
+        row = self._conn().execute(
+            "SELECT 1 FROM assets WHERE id <> ? AND "
+            "(local_path = ? COLLATE NOCASE OR live_local_path = ? COLLATE NOCASE) LIMIT 1",
+            (except_id, norm, norm)).fetchone()
+        return row is not None
 
     def get_stats(self) -> dict:
         """Сводка для интерфейса: по статусам, по видам, по годам, байты."""
@@ -358,8 +359,8 @@ def plan_local_paths(state: State, asset: sqlite3.Row, download_dir: str, by_mon
     if current and _under(current, root):
         return current, asset["live_local_path"]
 
-    local = os.path.join(folder, name)
-    live = os.path.join(folder, live_name) if live_name else None
+    local = os.path.normpath(os.path.join(folder, name))
+    live = os.path.normpath(os.path.join(folder, live_name)) if live_name else None
     taken = state.is_path_taken(local, asset["id"]) or (live is not None and state.is_path_taken(live, asset["id"]))
     if not taken:
         # Файл с таким именем уже лежит на диске, но это не наш: не затирать чужое
