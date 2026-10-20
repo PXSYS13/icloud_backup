@@ -1,0 +1,63 @@
+# Локальные данные (никогда не коммитим)
+.env
+.env.*
+!.env.example
+session/
+session_demo/
+*.session
+
+# База состояния
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+
+# Логи, скачанное, временные файлы
+logs/
+downloads/
+downloads_demo/
+*.log
+*.part
+*.tmp
+*.bak
+support-info.json
+icloud-logs-*.zip
+
+# Копия «Яндекс БК» для чтения и настройки инструментов разработки
+_reference/
+.claude/
+
+# Демо-медиатека
+_demo_cloud/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+
+# Виртуальные окружения
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Сборки
+build/
+dist/
+*.egg-info/

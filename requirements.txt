@@ -1,0 +1,12 @@
+# Для тех, кто ставит зависимости через pip (основной путь — uv и pyproject.toml).
+# Python 3.10–3.13.
+fastapi>=0.115.0
+uvicorn>=0.32.0
+python-dotenv>=1.2.3
+requests>=2.31.0
+yadisk[sync_defaults]>=3.4.0
+pillow>=10.4.0
+pillow-heif>=0.18.0
+# icloudpd зафиксирован точной версией 1.32.3: чистый Python-wheel с проверкой хеша.
+# Платформенные wheel icloudpd на PyPI — бинарники PyInstaller, импортировать их нельзя.
+icloudpd @ https://files.pythonhosted.org/packages/b9/73/20544e68569fce262d596ebe42730aac235b8e69a36edefebdf8cfa85508/icloudpd-1.32.3-py3-none-any.whl#sha256=b80b8586ed65e0f90e82b5eb13015c1cf0066ca38f4ee3fcf6378c8688f3fc83
