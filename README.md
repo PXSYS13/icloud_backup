@@ -10,7 +10,7 @@
 [![Инструкция](https://img.shields.io/badge/Инструкция-для_новичков-5b5bd6?style=for-the-badge)](https://github.com/PXSYS13/icloud_backup/blob/main/INSTRUCTION.md)
 [![Поддержать](https://img.shields.io/badge/Поддержать-любой_суммой-ff375f?style=for-the-badge)](https://dalink.to/davronsvv)
 
-![Версия](https://img.shields.io/badge/версия-1.0.1-blue)
+![Версия](https://img.shields.io/badge/версия-1.0.2-blue)
 [![Тестовый режим](https://img.shields.io/badge/тестовый_режим-нужны_отзывы-orange)](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml)
 ![Windows · macOS · Linux](https://img.shields.io/badge/Windows_·_macOS_·_Linux-555)
 [![Telegram](https://img.shields.io/badge/Telegram-@davronsv-2CA5E0?logo=telegram&logoColor=white)](https://t.me/davronsv)

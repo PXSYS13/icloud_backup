@@ -60,8 +60,8 @@ body:
     id: version
     attributes:
       label: Версия программы
-      description: Написана в меню слева под названием «iCloud БК», например «версия 1.0.1».
-      placeholder: "1.0.1"
+      description: Написана в меню слева под названием «iCloud БК», например «версия 1.0.2».
+      placeholder: "1.0.2"
 
   - type: input
     id: ios
