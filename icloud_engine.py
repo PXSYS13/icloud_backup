@@ -245,12 +245,24 @@ class ICloudPdEngine:
         return {"apple_id": self._apple_id or self._read_account(), "state": self._state}
 
     def reauthenticate(self) -> None:
-        """Сессия Apple протухла посреди скачивания: продлить по сохранённому токену."""
+        """Сессия Apple протухла посреди скачивания: продлить по сохранённому токену.
+
+        Пароля у нас нет, поэтому возможна только проверка токена сессии (/validate):
+        если Apple его принял, cookies обновились и можно качать дальше; если нет —
+        нужен новый вход, и скачивание продолжится после него с того же места.
+        """
+        from pyicloud_ipd.exceptions import PyiCloudAPIResponseException
+
         with self._lock:
             if self._icloud is None:
                 raise EngineError("expired", "Сессия истекла. Войдите заново.")
             try:
-                self._icloud.authenticate(force_refresh=True)
+                self._icloud.data = self._icloud._validate_token()
+                self._icloud.authenticate()  # обновляет адреса сервисов по свежим данным
+            except PyiCloudAPIResponseException:
+                self._state = "none"
+                raise EngineError("expired", "Сессия Apple истекла. Войдите заново — скачивание "
+                                             "продолжится с того же места.") from None
             except Exception as e:  # noqa: BLE001
                 raise self._translate(e) from None
             if not self._icloud.data or self._icloud.requires_2fa:

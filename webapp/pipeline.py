@@ -39,6 +39,8 @@ MAX_ITEM_ATTEMPTS = 4
 MAX_LIST_ATTEMPTS = 8
 # Список свежий столько секунд: повторный старт не собирает его заново
 LISTING_FRESH_SEC = 6 * 3600
+# Столько раз за запуск пересобираем список из-за устаревших ссылок на файлы
+MAX_RELISTS = 6
 SPEED_WINDOW_SEC = 30
 
 
@@ -47,6 +49,18 @@ class _PauseRequested(Exception):
 
 
 class _Stopped(Exception):
+    pass
+
+
+class _UrlRejected(Exception):
+    """Apple не отдал файл по ссылке (403, 404, 410): ссылки живут недолго, нужен свежий список."""
+
+    def __init__(self, status: int):
+        super().__init__(f"HTTP {status}")
+        self.status = status
+
+
+class _RelistNeeded(Exception):
     pass
 
 
@@ -109,6 +123,7 @@ class Pipeline:
         self.wait_until: float | None = None
         self.wait_reason: str | None = None
         self.speed = SpeedMeter()
+        self._url_rejects: dict[str, int] = {}
 
     # ── управление ──
 
@@ -361,16 +376,29 @@ class Pipeline:
         self.state_name = "downloading"
         self.speed.reset()
         self._event("run", "Начинаю скачивание")
-        for item in self._iter_with_retry():
-            self._check_stop()
-            self._wait_if_paused()
-            row = state.get(item.id)
-            if row is None:
-                state.upsert_batch([item.as_row()])
-                row = state.get(item.id)
-            if row["status"] in ("downloaded", "skipped", "failed"):
-                continue
-            self._download_item(item, row, state, cfg)
+        self._url_rejects = {}
+        relists = 0
+        while True:
+            try:
+                for item in self._iter_with_retry():
+                    self._check_stop()
+                    self._wait_if_paused()
+                    row = state.get(item.id)
+                    if row is None:
+                        state.upsert_batch([item.as_row()])
+                        row = state.get(item.id)
+                    if row["status"] in ("downloaded", "skipped", "failed"):
+                        continue
+                    self._download_item(item, row, state, cfg)
+                return
+            except _RelistNeeded:
+                # Ссылки Apple живут недолго: после долгой паузы или большого видео они
+                # устаревают. Список собираем заново — скачанное пропускается быстро
+                relists += 1
+                if relists > MAX_RELISTS:
+                    raise EngineError("apple", "Apple раз за разом не отдаёт файлы по свежим ссылкам. "
+                                               "Попробуйте позже.")
+                self._event("wait", "Ссылки на файлы устарели — получаю список заново")
 
     def _download_item(self, item: MediaItem, row, state: State, cfg: dict) -> None:
         local, live_local = plan_local_paths(state, row, cfg["download_dir"], cfg["by_month"])
@@ -421,6 +449,14 @@ class Pipeline:
                 continue
             except _Stopped:
                 raise
+            except _UrlRejected as e:
+                n = self._url_rejects.get(item.id, 0) + 1
+                self._url_rejects[item.id] = n
+                if n >= 3:
+                    state.mark_failed(item.id, f"url | Apple не отдал файл ({e})")
+                    self._event("err", f"Не скачался {name}: Apple не отдаёт файл ({e})")
+                    return False, None
+                raise _RelistNeeded() from None
             except EngineError as e:
                 if e.kind == "expired":
                     self._reauth_or_raise(e)
@@ -476,6 +512,8 @@ class Pipeline:
         try:
             status = getattr(resp, "status_code", 200)
             if not getattr(resp, "ok", status < 400):
+                if status in (401, 403, 404, 410):
+                    raise _UrlRejected(status)
                 raise EngineError("apple", f"Apple не отдал файл (ответ {status})")
             if start and status == 200:
                 start = 0  # сервер не умеет докачку — качаем заново
