@@ -1,4 +1,4 @@
-/* Поддержать проект. */
+/* Поддержать проект; другие программы автора и флажок «От автора» — из flag.js. */
 (function () {
   'use strict';
   const App = window.App;
@@ -20,10 +20,8 @@
             <a class="btn big" id="support-github" href="https://github.com/PXSYS13/icloud_backup" target="_blank" rel="noopener">${I('code')}Проект на GitHub</a>
           </div>
         </section>
-        <div class="card mt"><h2>Другие программы автора</h2>
-          <div class="links-grid">
-            <a id="support-yadisk" href="https://github.com/PXSYS13/yadisk_backup" target="_blank" rel="noopener"><span class="ico">${I('hdd')}</span><span>«Яндекс БК» — скачать весь Яндекс Диск и безлимит фото</span></a>
-          </div></div>`;
+        <div id="support-apps"></div>
+        <div id="support-flag"></div>`;
     },
     update(s) {
       const links = s.links || {};
@@ -31,7 +29,8 @@
       if (links.telegram) byId('support-telegram').href = links.telegram;
       if (links.youtube) byId('support-youtube').href = links.youtube;
       if (links.github) byId('support-github').href = links.github;
-      if (links.yadisk_bk) byId('support-yadisk').href = links.yadisk_bk;
+      App.html(byId('support-apps'), App.flag.promos(s));
+      App.html(byId('support-flag'), App.flag.privacy());
     },
   };
 })();

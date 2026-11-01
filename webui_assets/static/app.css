@@ -247,6 +247,30 @@ button.small .i,.btn.small .i{width:16px;height:16px}
 .banner.update .b-icon{background:var(--accent-soft);color:var(--accent-text)}
 .banner.update p{max-width:72ch}
 .banner.update .actions{gap:8px 16px;align-items:center}
+/* ── Флажок «От автора» у заголовка итогов и карточка «Будем на связи» ── */
+.pennant{position:relative;gap:6px;min-height:32px;padding:0 12px 0 10px;border:none;border-radius:8px 8px 8px 2px;background:var(--accent);color:#fff;font-size:14px}
+.pennant:hover:not(:disabled){background:var(--accent-hover)}
+.pennant .i{width:15px;height:15px}
+.pennant[aria-expanded="true"]{box-shadow:0 0 0 3px var(--accent-soft)}
+/* Два мягких импульса кольца на первом заходе — как у точки «идёт»: только transform и opacity */
+.pennant.glow::after{content:"";position:absolute;inset:-4px;border-radius:inherit;border:2px solid var(--accent-line);opacity:0;pointer-events:none;animation:pennant-glow 1.2s ease-out 2}
+@keyframes pennant-glow{0%{transform:scale(.96);opacity:0}40%{opacity:.7}100%{transform:scale(1.08);opacity:0}}
+.flag-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+.flag-head .grow{flex:1;min-width:0}
+.flag-head .tiny{display:block;margin-top:2px}
+.flag-head button{flex:none;margin:-8px -8px 0 0}
+/* Карточки других программ автора: на итогах — одна строка, на «Поддержать» — список */
+.promos{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.app-promo{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;margin-top:16px;padding:12px 16px;border-radius:var(--radius-md);background:var(--surface-2)}
+.promos .app-promo{margin-top:0}
+.promo-text{min-width:0}
+.promo-text .tiny{margin-top:2px;line-height:1.45}
+.promo-actions{flex-wrap:nowrap;gap:4px}
+.flag-hide[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-text)}
+@media (max-width:520px){
+  .app-promo{grid-template-columns:40px minmax(0,1fr)}
+  .promo-actions{grid-column:1 / -1;flex-wrap:wrap}
+}
 /* Тихая строка «не удаляйте файлы» под главной карточкой */
 .safety-note{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface);color:var(--text-2);font-size:15px;line-height:1.45}
 .safety-note .i{width:20px;height:20px;color:var(--warn);margin-top:1px;stroke-width:1.75}

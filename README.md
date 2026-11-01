@@ -10,7 +10,7 @@
 [![Инструкция](https://img.shields.io/badge/Инструкция-для_новичков-5b5bd6?style=for-the-badge)](https://github.com/PXSYS13/icloud_backup/blob/main/INSTRUCTION.md)
 [![Поддержать](https://img.shields.io/badge/Поддержать-любой_суммой-ff375f?style=for-the-badge)](https://dalink.to/davronsvv)
 
-![Версия](https://img.shields.io/badge/версия-1.0.2-blue)
+![Версия](https://img.shields.io/badge/версия-1.0.3-blue)
 [![Тестовый режим](https://img.shields.io/badge/тестовый_режим-нужны_отзывы-orange)](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml)
 ![Windows · macOS · Linux](https://img.shields.io/badge/Windows_·_macOS_·_Linux-555)
 [![Telegram](https://img.shields.io/badge/Telegram-@davronsv-2CA5E0?logo=telegram&logoColor=white)](https://t.me/davronsv)
@@ -249,6 +249,13 @@ HEIC — формат, в котором айфон снимает фото. Win
 </p>
 
 Помочь можно и без денег: поставьте звезду этому репозиторию, расскажите о программе тем, у кого переполнен iCloud, [пришлите отчёт о тестировании](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml) или [сообщите об ошибке](https://github.com/PXSYS13/icloud_backup/issues/new?template=bug-report.yml).
+
+В самой программе всё это — в разделе «Поддержать» и на флажке «От автора» на экране «Готово» после скачивания медиатеки. Флажок не всплывает поверх экрана, его можно скрыть, а программа никуда не сообщает, нажали ли вы на ссылку.
+
+### Другие программы автора
+
+- [**VK Backup**](https://github.com/PXSYS13/vk_backup) — бэкап ВКонтакте: переписки, фото, стена и друзья из официального архива ВК, без пароля.
+- [**«Яндекс БК»**](https://github.com/PXSYS13/yadisk_backup) — сохраняет весь Яндекс.Диск на компьютер и работает, даже когда Яндекс недоступен.
 
 ## Сообщество
 

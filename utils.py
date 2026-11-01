@@ -15,7 +15,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-APP_VERSION = "1.0.2"
+APP_VERSION = "1.0.3"
 APP_NAME = "iCloud БК"
 
 # Символы, запрещённые в именах файлов на Windows. Слеши тоже: имя файла в iCloud
@@ -49,6 +49,7 @@ GUIDE_URL = f"{GITHUB_URL}/blob/main/INSTRUCTION.md"
 FEEDBACK_URL = f"{GITHUB_URL}/issues/new?template=test-report.yml"
 BUG_REPORT_URL = f"{GITHUB_URL}/issues/new?template=bug-report.yml"
 YADISK_BK_URL = "https://github.com/PXSYS13/yadisk_backup"
+VK_BACKUP_URL = "https://github.com/PXSYS13/vk_backup"
 ICLOUDPD_URL = "https://github.com/icloud-photos-downloader/icloud_photos_downloader"
 
 PHOTO_EXTS = {
