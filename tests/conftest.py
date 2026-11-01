@@ -29,6 +29,7 @@ def _isolate_project_files(tmp_path, monkeypatch):
     monkeypatch.setattr(webapp.paths, "LOG_DIR", tmp_path / "logs")
     monkeypatch.setattr(webapp.paths, "WEBUI_LOG", tmp_path / "logs" / "webui.log")
     monkeypatch.setattr(webapp.paths, "DEMO_CLOUD_DIR", tmp_path / "_demo_cloud")
+    monkeypatch.setattr(webapp.paths, "SUPPORTERS_FILE", tmp_path / "supporters.json")
     for key in ("PHOTO_FORMAT", "LAYOUT_BY_MONTH", "YA_DISK_TOKEN", "ICLOUD_BK_DEMO"):
         monkeypatch.setenv(key, "")
     monkeypatch.setenv("DOWNLOAD_DIR", str(tmp_path / "downloads"))

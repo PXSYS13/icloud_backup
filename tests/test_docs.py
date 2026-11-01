@@ -13,7 +13,7 @@ def test_images_in_docs_exist():
     # Картинка с опечаткой в пути на GitHub молча не показывается — ловим здесь
     for doc in ("README.md", "INSTRUCTION.md"):
         text = (ROOT / doc).read_text(encoding="utf-8")
-        images = re.findall(r"\((docs/[^)\s]+)\)|src=\"(docs/[^\"]+)\"", text)
+        images = re.findall(r"\((docs/[^)\s]+)\)|src=\"((?:docs|webui_assets)/[^\"]+)\"", text)
         assert images, doc
         for md, html in images:
             assert (ROOT / (md or html)).is_file(), f"{doc}: нет файла {md or html}"

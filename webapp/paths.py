@@ -21,3 +21,5 @@ TEMPLATES_DIR = PROJECT / "webui_assets"
 LOG_DIR = PROJECT / "logs"
 WEBUI_LOG = LOG_DIR / "webui.log"
 DEMO_CLOUD_DIR = PROJECT / "_demo_cloud"
+# «Нас поддерживают»: копия общего списка, приходит вместе с программой
+SUPPORTERS_FILE = PROJECT / "supporters.json"

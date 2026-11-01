@@ -1,0 +1,72 @@
+# «Нас поддерживают»: раз в час кладёт рядом с программой свежую копию общего списка
+# поддержавших. Список один на все программы автора и ведётся в репозитории «Яндекс БК»
+# (supporters.json, туда сами попадают донаты DonationAlerts); файл публичный, секреты не нужны.
+#
+# Сама программа этот список никогда не скачивает: она показывает копию supporters.json,
+# которая пришла вместе с ней, и люди получают свежий список с каждой новой версией.
+# Коммит от GITHUB_TOKEN не запускает CI.
+name: supporters
+
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: supporters
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'PXSYS13/icloud_backup'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Скачать список
+        run: >-
+          curl -fsSL --max-time 30
+          -o "$RUNNER_TEMP/supporters.json"
+          https://raw.githubusercontent.com/PXSYS13/yadisk_backup/main/supporters.json
+
+      # Пустой ответ, страница ошибки, «[]» или огромный файл не должны заменить хороший список
+      - name: Проверить и заменить
+        run: |
+          python3 - "$RUNNER_TEMP/supporters.json" <<'EOF'
+          import json
+          import sys
+
+          MAX_BYTES = 256 * 1024
+          with open(sys.argv[1], "rb") as f:
+              body = f.read()
+          if len(body) > MAX_BYTES:
+              sys.exit(f"Список слишком большой: {len(body)} байт, можно не больше {MAX_BYTES}")
+          try:
+              data = json.loads(body.decode("utf-8"))
+          except (UnicodeDecodeError, ValueError) as e:
+              sys.exit(f"Список не JSON: {e}")
+          if not isinstance(data, dict) or not isinstance(data.get("supporters"), list):
+              sys.exit("В файле нет списка supporters")
+          print(f"Записей в списке: {len(data['supporters'])}")
+          EOF
+          cp "$RUNNER_TEMP/supporters.json" supporters.json
+
+      - name: Сохранить, если изменился
+        run: |
+          if git diff --quiet -- supporters.json; then
+            echo "Список не изменился"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supporters.json
+          git commit -m "chore: update supporters list"
+          for attempt in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 5
+          done
+          exit 1

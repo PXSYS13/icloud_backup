@@ -46,6 +46,9 @@ dedupe.py             одинаковые файлы по MD5 — в _duplicate
 organize.py           раскладка по годам и месяцам
 yandex_upload.py      копия на Яндекс Диск
 utils.py              общие утилиты: пути, маскирование секретов, пределы
+supporters.py         «Нас поддерживают»: проверка списка из supporters.json, без сети
+supporters.json       копия общего списка поддержавших; её раз в час обновляет
+                      .github/workflows/supporters.yml, руками не правится
 
 tests/                pytest
 INSTRUCTION.md        пошаговая инструкция для пользователей

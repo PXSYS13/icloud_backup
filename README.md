@@ -10,7 +10,7 @@
 [![Инструкция](https://img.shields.io/badge/Инструкция-для_новичков-5b5bd6?style=for-the-badge)](https://github.com/PXSYS13/icloud_backup/blob/main/INSTRUCTION.md)
 [![Поддержать](https://img.shields.io/badge/Поддержать-любой_суммой-ff375f?style=for-the-badge)](https://dalink.to/davronsvv)
 
-![Версия](https://img.shields.io/badge/версия-1.0.3-blue)
+![Версия](https://img.shields.io/badge/версия-1.0.4-blue)
 [![Тестовый режим](https://img.shields.io/badge/тестовый_режим-нужны_отзывы-orange)](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml)
 ![Windows · macOS · Linux](https://img.shields.io/badge/Windows_·_macOS_·_Linux-555)
 [![Telegram](https://img.shields.io/badge/Telegram-@davronsv-2CA5E0?logo=telegram&logoColor=white)](https://t.me/davronsv)
@@ -107,7 +107,7 @@
 </tr>
 <tr>
 <td><b>Яндекс Диск.</b> Необязательная копия на Диск: тот же ключ, что в «Яндекс БК»; файлы, которые там уже есть, пропускаются.</td>
-<td><b>Поддержать.</b> Программа бесплатная; здесь — как помочь проекту и где задать вопрос.</td>
+<td><b>Поддержать.</b> Программа бесплатная; здесь — как помочь проекту (ссылкой или QR-кодом с телефона), где задать вопрос и кто уже поддержал.</td>
 </tr>
 </table>
 
@@ -248,9 +248,16 @@ HEIC — формат, в котором айфон снимает фото. Win
   <a href="https://dalink.to/davronsvv"><img src="https://img.shields.io/badge/Поддержать_проект-любой_суммой-ff375f?style=for-the-badge" alt="Поддержать проект"></a>
 </p>
 
+<p align="center">
+  <a href="https://dalink.to/davronsvv"><img src="webui_assets/static/donate-qr.png" width="180" alt="QR-код: поддержать проект через DonationAlerts"></a><br>
+  <sub>С телефона — наведите камеру на QR-код: откроется <a href="https://dalink.to/davronsvv">dalink.to/davronsvv</a></sub>
+</p>
+
 Помочь можно и без денег: поставьте звезду этому репозиторию, расскажите о программе тем, у кого переполнен iCloud, [пришлите отчёт о тестировании](https://github.com/PXSYS13/icloud_backup/issues/new?template=test-report.yml) или [сообщите об ошибке](https://github.com/PXSYS13/icloud_backup/issues/new?template=bug-report.yml).
 
 В самой программе всё это — в разделе «Поддержать» и на флажке «От автора» на экране «Готово» после скачивания медиатеки. Флажок не всплывает поверх экрана, его можно скрыть, а программа никуда не сообщает, нажали ли вы на ссылку.
+
+Там же — «Нас поддерживают»: общий для всех программ автора список тех, кто поддержал проект. Он приходит вместе с программой и обновляется с каждой новой версией; сама программа за ним в интернет не ходит.
 
 ### Другие программы автора
 

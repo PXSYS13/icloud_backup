@@ -483,6 +483,18 @@ button.small .i,.btn.small .i{width:16px;height:16px}
 .support-hero .sub{color:var(--text-2);font-size:17px;line-height:1.55;max-width:56ch;margin-top:12px}
 .support-hero .support-note{color:var(--text-3);font-size:14px;line-height:1.5;max-width:62ch;margin-top:10px}
 .support-hero .actions{margin-top:28px;gap:12px}
+/* QR-код — на белом в любой теме: тёмный фон камера телефона не прочитает */
+.donate-row{display:flex;gap:16px 24px;align-items:center;flex-wrap:wrap;margin-top:28px}
+.donate-main{display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:40ch}
+.donate-qr{display:block;width:132px;height:132px;padding:6px;border-radius:12px;background:#fff;border:1px solid var(--border);image-rendering:pixelated}
+.supporters-note{margin-top:24px;max-width:72ch;line-height:1.5}
+.top-supporters{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.top-supporter{display:flex;align-items:center;gap:12px;padding:16px 20px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);min-width:0}
+.top-supporter .grow{flex:1;min-width:0}
+.top-rank{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;background:var(--surface-2);color:var(--text-2)}
+.top-rank .i{width:16px;height:16px}
+.top-rank.r1{background:var(--warn-soft);color:var(--warn)}
+.top-rank.r2,.top-rank.r3{background:var(--accent-soft);color:var(--accent-text)}
 .supporters-head{display:flex;align-items:flex-end;justify-content:space-between;gap:8px 24px;flex-wrap:wrap;margin:40px 0 20px}
 .supporters-head h2{font-size:24px;letter-spacing:-.01em}
 .supporters-head p{margin-top:4px;font-size:17px;color:var(--text-2)}
@@ -741,7 +753,7 @@ dialog.dialog::backdrop{background:rgba(0,0,0,.4)}
   .stat:first-child .s-value{font-size:32px}
   .s-value{font-size:24px}
   .steps li{font-size:12px}
-  .checks.two,.checks.types,.supporters{grid-template-columns:minmax(0,1fr)}
+  .checks.two,.checks.types,.supporters,.top-supporters{grid-template-columns:minmax(0,1fr)}
   .support-hero{padding:24px}
   .support-hero h1{font-size:28px}
   .banner{flex-direction:column;align-items:flex-start}
